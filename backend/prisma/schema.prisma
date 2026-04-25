@@ -11,3 +11,45 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  password   String
+  updated_at DateTime @updatedAt
+  created_at DateTime @default(now())
+
+  notes Note[]
+}
+
+model Note {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  user       User     @relation(fields: [user_id], references: [id])
+  updated_at DateTime @updatedAt
+  created_at DateTime @default(now())
+
+  blocks Block[]
+}
+
+enum BlockType {
+  TEXT
+  IMAGE
+  CODE
+  CHECKLIST
+}
+
+model Block {
+  id          Int       @id @default(autoincrement())
+  note_id     Int
+  note        Note      @relation(fields: [note_id], references: [id])
+  parent_id   Int?
+  parent      Block?    @relation("BlockChildren", fields: [parent_id], references: [id])
+  children    Block[]   @relation("BlockChildren")
+  type        BlockType @default(TEXT)
+  content     String    @default("")
+  order_index Int
+
+  updated_at DateTime @updatedAt
+  created_at DateTime @default(now())
+}
