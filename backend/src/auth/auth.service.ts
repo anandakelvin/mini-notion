@@ -1,15 +1,18 @@
 import { Injectable } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
 import bcrypt from 'bcrypt';
+import { LoginResponseBodyDto } from "shared/dto/auth/body/login-body.dto";
 import { User } from "src/prisma/generated/prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 
 @Injectable()
 export class AuthService {
 	constructor(
-		private readonly prisma: PrismaService
+		private readonly prisma: PrismaService,
+		private readonly jwtService: JwtService
 	) {}
 
-	async login(email: string, password: string): Promise<User | null> {
+	async validateUser(email: string, password: string): Promise<User | null> {
 		const user = await this.prisma.user.findUnique({
 			where: {
 				email
@@ -27,6 +30,13 @@ export class AuthService {
 		return user
 			
 	}
+
+	async login(user: User): Promise<LoginResponseBodyDto> {
+    const payload = { email: user.email, sub: user.id };
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
+  }
 
 	async register(email: string, password: string): Promise<User> {
 		return this.prisma.user.create({
