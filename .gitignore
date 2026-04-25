@@ -1,0 +1,12 @@
+# Dependency directories
+node_modules/
+
+# pnpm specific
+.pnpm-debug.log*
+.pnpm-store/
+# Optional: only if virtual-store-dir is set to .pnpm
+.pnpm/
+
+# Local env files and sensitive config
+.env
+.npmrc
