@@ -1,4 +1,5 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
 import { Note } from "backend/src/prisma/generated/prisma/client";
 import { PrismaService } from "backend/src/prisma/prisma.service";
 
@@ -11,7 +12,7 @@ export class NoteService  {
 	async getNotes(userId: number): Promise<Note[]> {
 		return this.prisma.note.findMany({
 			where: {
-				id: userId,
+				user_id: userId,
 			}
 		})
 	}
@@ -45,10 +46,20 @@ export class NoteService  {
 	}
 
 	async deleteNote(noteId: number): Promise<Note> {
+		try{
+
 		return this.prisma.note.delete({
 			where: {
 				id: noteId,
 			}
 		})
+		} catch (error) {
+			if (error instanceof PrismaClientKnownRequestError) {
+				if (error.code === 'P2025'){
+					throw new NotFoundException('Note not found')
+				}
+			}
+			throw error
+		}
 	}
 }
