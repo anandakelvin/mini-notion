@@ -1,7 +1,7 @@
 import { Body, Controller, HttpCode, HttpStatus, InternalServerErrorException, Post, Res, UnauthorizedException } from "@nestjs/common";
 import { AuthService } from "backend/src/auth/auth.service";
-import { LoginRequestBodyDto } from "shared/dto/auth/body/login-body.dto";
-import { RegisterRequestBodyDto } from "shared/dto/auth/body/register-body.dto";
+import { LoginRequestBody } from "shared/dto/auth/body/login-body.dto";
+import { RegisterRequestBody } from "shared/dto/auth/body/register-body.dto";
 
 @Controller('auth')
 export class AuthController {
@@ -9,7 +9,7 @@ export class AuthController {
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  async register(@Body() dto: RegisterRequestBodyDto) : Promise<undefined> {
+  async register(@Body() dto: RegisterRequestBody) : Promise<undefined> {
 		try {
     	await this.authService.register(dto.email, dto.password);
 		} catch (error) {
@@ -20,7 +20,7 @@ export class AuthController {
 
 	@Post('login')
 	@HttpCode(HttpStatus.OK)
-	async login(@Res({passthrough: true}) response: any, @Body() dto: LoginRequestBodyDto) : Promise<undefined> {
+	async login(@Res({passthrough: true}) response: any, @Body() dto: LoginRequestBody) : Promise<undefined> {
 		const validatedUser = await this.authService.validateUser(dto.email, dto.password);
 		
 		if (!validatedUser) {
