@@ -1,0 +1,14 @@
+{
+  "name": "shared",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+		"build": "rm -rf dist && tsc"
+	},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.33.2"
+}
