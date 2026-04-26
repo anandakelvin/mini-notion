@@ -3,7 +3,8 @@
 		"baseUrl": "./",
 		"paths": {
 			"shared": ["shared"],
-			"backend": ["backend"]
+			"backend": ["backend"],
+			"frontend": ["frontend"]
 		}
 	}
 }
