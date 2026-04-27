@@ -1,8 +1,8 @@
 import { BadRequestException, Body, Controller, HttpCode, HttpStatus, InternalServerErrorException, Post, Res, UnauthorizedException } from "@nestjs/common";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
 import { AuthService } from "backend/src/auth/auth.service";
-import { LoginRequestBody } from "shared/dto/auth/body/login-body.dto";
-import { RegisterRequestBody } from "shared/dto/auth/body/register-body.dto";
+import { LoginRequestBody } from "shared/dto/auth/body/login-body.schema";
+import { RegisterRequestBody } from "shared/dto/auth/body/register-body.schema";
 
 @Controller('auth')
 export class AuthController {

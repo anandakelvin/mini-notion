@@ -3,7 +3,7 @@ import { JwtService } from "@nestjs/jwt";
 import { User } from "backend/src/prisma/generated/prisma/client";
 import { PrismaService } from "backend/src/prisma/prisma.service";
 import bcrypt from 'bcrypt';
-import { LoginResponseBody } from "shared/dto/auth/body/login-body.dto";
+import { LoginResponseBody } from "shared/dto/auth/body/login-body.schema";
 
 @Injectable()
 export class AuthService {

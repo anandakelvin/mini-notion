@@ -1,10 +1,4 @@
 import { createZodDto } from "nestjs-zod";
-import z from "zod";
+import { RegisterRequestBodySchema } from "shared/dto/auth/body/register-body.schema";
 
-export const RegisterRequestBodySchema = z.object({
-  email: z.email(),
-  password: z.string().min(6),
-});
-
-export type RegisterRequestBody = z.infer<typeof RegisterRequestBodySchema>;
 export class RegisterRequestBodyDto extends createZodDto(RegisterRequestBodySchema) {}
