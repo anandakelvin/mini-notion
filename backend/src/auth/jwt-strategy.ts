@@ -9,7 +9,7 @@ import { Strategy } from 'passport-jwt';
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
     super({
-      jwtFromRequest: cookieExtractor, // Use custom extractor here
+      jwtFromRequest: cookieExtractor,
       ignoreExpiration: false,
       secretOrKey: jwtConstants.secret,
     });
@@ -21,8 +21,5 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 }
 
 const cookieExtractor = (req: Request): string | null => {
-  if (req && req.cookies) {
-    return req.cookies['access_token'] ?? null;
-  }
-  return null;
+  return req?.cookies?.access_token ?? null
 };

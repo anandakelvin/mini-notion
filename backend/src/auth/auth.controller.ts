@@ -1,4 +1,5 @@
-import { Body, Controller, HttpCode, HttpStatus, InternalServerErrorException, Post, Res, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Body, Controller, HttpCode, HttpStatus, InternalServerErrorException, Post, Res, UnauthorizedException } from "@nestjs/common";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
 import { AuthService } from "backend/src/auth/auth.service";
 import { LoginRequestBody } from "shared/dto/auth/body/login-body.dto";
 import { RegisterRequestBody } from "shared/dto/auth/body/register-body.dto";
@@ -11,10 +12,14 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() dto: RegisterRequestBody) : Promise<undefined> {
 		try {
-    	await this.authService.register(dto.email, dto.password);
+			await this.authService.register(dto.email, dto.password);
 		} catch (error) {
-			console.error(error);
-			throw new InternalServerErrorException("Unable to register user");			
+			if (error instanceof PrismaClientKnownRequestError) {
+				if (error.code === 'P2002') {
+					throw new BadRequestException('Email already exists')
+				}
+			}
+			throw error
 		}
   }
 

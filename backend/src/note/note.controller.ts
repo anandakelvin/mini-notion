@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, UseGuards } from "@nestjs/common";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
 import { JwtAuthGuard } from "backend/src/auth/jwt-auth.guard";
 
 import { NoteService } from "backend/src/note/note.service";
@@ -39,6 +40,15 @@ export class NoteController {
 	@UseGuards(JwtAuthGuard)
 	@Delete(':id')
 	async deleteNote(@Param('id') id: string): Promise<undefined> {
-		await this.noteService.deleteNote(Number(id));
+		try{
+			await this.noteService.deleteNote(Number(id));
+		} catch (error) {
+			if (error instanceof PrismaClientKnownRequestError) {
+				if (error.code === 'P2025'){
+					throw new NotFoundException('Note not found')
+				}
+			}
+			throw error
+		}
 	}
 }
