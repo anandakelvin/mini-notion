@@ -2,6 +2,8 @@ import { LayoutBottomIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import React, { useState } from "react"
 import { useNavigate } from "react-router"
+import { useForm, Controller } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "~/components/ui/button"
 import {
   Field,
@@ -11,6 +13,8 @@ import {
 } from "~/components/ui/field"
 import { Input } from "~/components/ui/input"
 import { cn } from "~/lib/utils"
+import { LoginRequestBodySchema, type LoginRequestBody } from "shared/dto/auth/body/login-body.schema"
+import { RegisterRequestBodySchema } from "shared/dto/auth/body/register-body.schema"
 
 type AuthMode = "login" | "register"
 
@@ -19,14 +23,24 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
   const [mode, setMode] = useState<AuthMode>("login")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<LoginRequestBody>({
+    resolver: zodResolver(mode === "login" ? LoginRequestBodySchema : RegisterRequestBodySchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  })
+
+  const onSubmit = async (data: LoginRequestBody) => {
     setLoading(true)
     setError(null)
 
@@ -39,7 +53,7 @@ export function LoginForm({
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(data),
       })
 
       if (!response.ok) {
@@ -52,6 +66,7 @@ export function LoginForm({
       } else {
         setMode("login")
         setError("Account created! Please log in.")
+        reset()
       }
     } catch (err: any) {
       setError(err.message)
@@ -60,9 +75,16 @@ export function LoginForm({
     }
   }
 
+  const toggleMode = () => {
+    const newMode = mode === "login" ? "register" : "login"
+    setMode(newMode)
+    setError(null)
+    reset()
+  }
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
             <a
@@ -83,7 +105,7 @@ export function LoginForm({
                   Don&apos;t have an account?{" "}
                   <button
                     type="button"
-                    onClick={() => setMode("register")}
+                    onClick={toggleMode}
                     className="underline underline-offset-4"
                   >
                     Sign up
@@ -94,7 +116,7 @@ export function LoginForm({
                   Already have an account?{" "}
                   <button
                     type="button"
-                    onClick={() => setMode("login")}
+                    onClick={toggleMode}
                     className="underline underline-offset-4"
                   >
                     Login
@@ -115,26 +137,46 @@ export function LoginForm({
 
           <Field>
             <FieldLabel htmlFor="email">Email</FieldLabel>
-            <Input
-              id="email"
-              type="email"
-              placeholder="m@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
+            <Controller
+              name="email"
+              control={control}
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  aria-invalid={!!errors.email}
+                />
+              )}
             />
+            {errors.email && (
+              <FieldDescription className="text-destructive text-xs">
+                {errors.email.message}
+              </FieldDescription>
+            )}
           </Field>
           
           <Field>
             <FieldLabel htmlFor="password">Password</FieldLabel>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+            <Controller
+              name="password"
+              control={control}
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  aria-invalid={!!errors.password}
+                />
+              )}
             />
+            {errors.password && (
+              <FieldDescription className="text-destructive text-xs">
+                {errors.password.message}
+              </FieldDescription>
+            )}
           </Field>
 
           <Field>
