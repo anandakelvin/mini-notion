@@ -1,12 +1,19 @@
-import { BadRequestException, Body, Controller, HttpCode, HttpStatus, InternalServerErrorException, Post, Res, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, InternalServerErrorException, Post, Res, UnauthorizedException, UseGuards } from "@nestjs/common";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
 import { AuthService } from "backend/src/auth/auth.service";
+import { JwtAuthGuard } from "backend/src/auth/jwt-auth.guard";
 import { LoginRequestBody } from "shared/dto/auth/body/login-body.schema";
 import { RegisterRequestBody } from "shared/dto/auth/body/register-body.schema";
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
+
+	@UseGuards(JwtAuthGuard)
+	@Get('check')
+	async authCheck() : Promise<undefined> {
+		return
+	}
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
@@ -24,7 +31,6 @@ export class AuthController {
   }
 
 	@Post('login')
-	@HttpCode(HttpStatus.OK)
 	async login(@Res({passthrough: true}) response: any, @Body() dto: LoginRequestBody) : Promise<undefined> {
 		const validatedUser = await this.authService.validateUser(dto.email, dto.password);
 		
