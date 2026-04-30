@@ -1,20 +1,20 @@
-import { Button } from "@/components/ui/button"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { LayoutBottomIcon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Button } from "frontend/src/components/ui/button"
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { cn } from "@/lib/utils"
-import { useAppStore } from "@/stores/app.stores"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { LayoutBottomIcon } from "@hugeicons/core-free-icons"
-import { HugeiconsIcon } from "@hugeicons/react"
-import { LoginRequestBodySchema, type LoginRequestBody } from "@shared/dto/auth/body/login-body.schema"
-import { RegisterRequestBodySchema } from "@shared/dto/auth/body/register-body.schema"
+} from "frontend/src/components/ui/field"
+import { Input } from "frontend/src/components/ui/input"
+import { cn } from "frontend/src/lib/utils"
+import { useAuthStore } from "frontend/src/stores/auth.store"
 import React, { useState } from "react"
 import { Controller, useForm } from "react-hook-form"
+import { LoginRequestBodySchema, type LoginRequestBody } from "shared/dto/auth/body/login-body.schema"
+import { RegisterRequestBodySchema } from "shared/dto/auth/body/register-body.schema"
 
 type AuthMode = "login" | "register"
 
@@ -22,7 +22,7 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const setAuthStatus = useAppStore((state) => state.setAuthStatus)
+  const checkAuth = useAuthStore(state => state.check)
   const [mode, setMode] = useState<AuthMode>("login")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -66,7 +66,7 @@ export function LoginForm({
         setError("Account created! Please log in.")
         reset()
       } else {
-        setAuthStatus(true)
+        await checkAuth()
       }
     } catch (err: any) {
       setError(err.message)
@@ -187,10 +187,6 @@ export function LoginForm({
           
         </FieldGroup>
       </form>
-      <FieldDescription className="px-6 text-center">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-        and <a href="#">Privacy Policy</a>.
-      </FieldDescription>
     </div>
   )
 }

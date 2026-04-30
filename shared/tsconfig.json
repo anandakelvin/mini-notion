@@ -3,7 +3,7 @@
 	"compilerOptions": {
 		"allowSyntheticDefaultImports": true,
 		"module": "commonjs",
-		"outDir": "./dist"
+		"outDir": "./dist",
 	},
 	"include": ["."],
 	"exclude": ["dist", "node_modules", "**/*.spec.ts"]

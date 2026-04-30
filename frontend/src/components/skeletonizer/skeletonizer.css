@@ -1,0 +1,92 @@
+/* skeletonizer.css */
+
+/* Base wrapper: exists from first paint */
+.skel-zone {
+	position: relative;
+	overflow: hidden;
+	/* for shimmer clipping */
+}
+
+/* When skeleton is ON */
+.skel-zone[data-skeleton="on"] {
+	/* optional: subtle base tint */
+	/* background-color: #f5f5f5; */
+}
+
+/* 1) TEXT & INLINE ELEMENTS
+   We only change color and background, not size or display.
+*/
+.skel-zone[data-skeleton="on"] p,
+.skel-zone[data-skeleton="on"] span,
+.skel-zone[data-skeleton="on"] li,
+.skel-zone[data-skeleton="on"] div,
+.skel-zone[data-skeleton="on"] h1,
+.skel-zone[data-skeleton="on"] h2,
+.skel-zone[data-skeleton="on"] h3,
+.skel-zone[data-skeleton="on"] h4,
+.skel-zone[data-skeleton="on"] h5,
+.skel-zone[data-skeleton="on"] h6,
+.skel-zone[data-skeleton="on"] button,
+.skel-zone[data-skeleton="on"] a,
+.skel-zone[data-skeleton="on"] label {
+	color: transparent !important;
+	/* hides glyphs but keeps layout */
+	background-color: #e0e0e0 !important;
+	/* skeleton block */
+	border-color: transparent !important;
+	text-shadow: none !important;
+}
+
+/* 2) IMAGES / SVG: keep boxes, hide content */
+.skel-zone[data-skeleton="on"] img,
+.skel-zone[data-skeleton="on"] svg {
+	visibility: hidden;
+	/* preserves width/height */
+	background-color: #e0e0e0;
+}
+
+/* 3) FORM CONTROLS */
+.skel-zone[data-skeleton="on"] input,
+.skel-zone[data-skeleton="on"] textarea,
+.skel-zone[data-skeleton="on"] select {
+	color: transparent !important;
+	background-image: none !important;
+	border-color: transparent !important;
+	background-color: #e0e0e0 !important;
+}
+
+/* Optional: allow opt-out on specific nodes */
+.skel-zone[data-skeleton="on"] .no-skeleton-bg {
+	background-color: transparent !important;
+}
+
+/* 4) SHIMMER OVERLAY
+   Uses only opacity/transform on a pseudo-element.
+   No layout changes, just compositing.
+*/
+.skel-zone::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	opacity: 0;
+	/* OFF by default */
+	background: linear-gradient(90deg,
+			rgba(255, 255, 255, 0) 0%,
+			rgba(255, 255, 255, 0.65) 50%,
+			rgba(255, 255, 255, 0) 100%);
+	transform: translateX(-100%);
+	will-change: transform, opacity;
+}
+
+/* Only animate when skeleton is ON */
+.skel-zone[data-skeleton="on"]::before {
+	opacity: 1;
+	animation: skel-shimmer 1.2s infinite;
+}
+
+@keyframes skel-shimmer {
+	100% {
+		transform: translateX(100%);
+	}
+}

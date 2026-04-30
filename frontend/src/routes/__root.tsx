@@ -1,45 +1,31 @@
-import { useAppStore } from '@/stores/app.stores'
-import { Outlet, createRootRoute, useNavigate } from '@tanstack/react-router'
-import * as React from 'react'
-import "../index.css"
+import { Outlet, createRootRoute, useNavigate } from '@tanstack/react-router';
+import { useAuthStore } from 'frontend/src/stores/auth.store';
+import { useEffect } from 'react';
+import "../index.css";
 
 export const Route = createRootRoute({
   component: RootComponent,
 })
 
 function RootComponent() {
-  const navigator = useNavigate()
-  const { isAuthenticated } = useAppStore()
-  const setAuthStatus = useAppStore(state => state.setAuthStatus)
+  const authenticated = useAuthStore(state => state.authenticated)
+  const isChecking = useAuthStore(state => state.isChecking)
+  const check = useAuthStore(state => state.check)
+  const navigate = useNavigate()
 
-  React.useEffect(() => {
-    const checkAuth = async () => {
-      const response = await fetch("http://localhost:3000/auth/check", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      })
-
-      if (response.ok) {
-        setAuthStatus(true)
-      }
-    }
-    checkAuth()
+  useEffect(() => {
+    check()
   }, [])
 
-  React.useEffect(()=>{
-    if (!isAuthenticated) {
-      navigator({ to: "/auth" })
-      return
-    } 
-    navigator({ to: "/notes" })
-  }, [isAuthenticated])
+  useEffect(() => {
+    if (!isChecking && !authenticated) {
+      navigate({ to: "/auth", replace: true })
+    }
+  }, [authenticated, isChecking, navigate])
 
-  return (
-    <React.Fragment>
-      <Outlet />
-    </React.Fragment>
-  )
+
+  if(isChecking) {
+    return null
+  }
+  return <Outlet />;
 }

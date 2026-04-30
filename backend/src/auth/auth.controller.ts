@@ -2,6 +2,8 @@ import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, Inter
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
 import { AuthService } from "backend/src/auth/auth.service";
 import { JwtAuthGuard } from "backend/src/auth/jwt-auth.guard";
+import { ReqUser } from "backend/src/shared/decorator/user.decorator";
+import { IReqUser } from "backend/src/shared/types";
 import { LoginRequestBody } from "shared/dto/auth/body/login-body.schema";
 import { RegisterRequestBody } from "shared/dto/auth/body/register-body.schema";
 
@@ -11,8 +13,8 @@ export class AuthController {
 
 	@UseGuards(JwtAuthGuard)
 	@Get('check')
-	async authCheck() : Promise<undefined> {
-		return
+	async authCheck(@ReqUser() user: IReqUser) : Promise<string> {
+		return user.email
 	}
 
   @Post('register')

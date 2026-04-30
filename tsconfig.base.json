@@ -13,9 +13,9 @@
 		"target": "ES2021",
 		"baseUrl": "./",
 		"paths": {
-			"shared": ["shared"],
-			"backend": ["backend"],
-			"frontend": ["frontend"]
+			"shared/*": ["./shared/*"],
+			"backend/*": ["./backend/*"],
+			"frontend/*": ["./frontend/*"]
 		}
 	}
 }
