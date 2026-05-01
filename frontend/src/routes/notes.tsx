@@ -1,8 +1,8 @@
-import { IconCirclePlus } from '@tabler/icons-react'
+import { IconCirclePlus, IconTrash } from '@tabler/icons-react'
 import { createFileRoute } from '@tanstack/react-router'
-import { Skeletonizer } from 'frontend/src/components/skeletonizer/skeletonizer'
 import { Button } from 'frontend/src/components/ui/button'
 import { Item, ItemActions, ItemContent, ItemDescription, ItemTitle } from 'frontend/src/components/ui/item'
+import { Skeletonizer } from 'frontend/src/components/ui/skeletonizer'
 import { useFetchNotes } from 'frontend/src/hooks/notes/use-fetch-notes'
 import { useAuthStore } from 'frontend/src/stores/auth.store'
 
@@ -43,7 +43,10 @@ function RouteComponent() {
                 <ItemTitle>{note.title}</ItemTitle>
               </ItemContent>
               <ItemActions>
-                <Button>Action</Button>
+                <Button size='sm' variant='destructive'>
+                  <IconTrash />
+                  Delete
+                </Button>
               </ItemActions>
             </Item>
           ))}

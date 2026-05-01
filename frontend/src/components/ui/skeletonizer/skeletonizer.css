@@ -1,0 +1,158 @@
+/* skeletonizer.css */
+
+/* Base wrapper: exists from first paint, no layout shift */
+.skel-zone {
+	position: relative;
+	overflow: hidden;
+}
+
+/* SHIMMER OVERLAY, only when skeleton is ON */
+.skel-zone::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	opacity: 0;
+	/* default OFF */
+	background: linear-gradient(90deg,
+			rgba(255, 255, 255, 0) 0%,
+			rgba(255, 255, 255, 0.65) 50%,
+			rgba(255, 255, 255, 0) 100%);
+	transform: translateX(-100%);
+	will-change: transform, opacity;
+}
+
+.skel-zone[data-skeleton="on"]::before {
+	opacity: 1;
+	animation: skel-shimmer 1.2s infinite;
+}
+
+@keyframes skel-shimmer {
+	100% {
+		transform: translateX(100%);
+	}
+}
+
+/* === DEFAULT SKELETONIZATION ============================== */
+
+/* Text / inline / common UI blocks:
+   hide text glyphs, show gray background.
+   We avoid changing display/width/height to prevent layout shift.
+*/
+.skel-zone[data-skeleton="on"] p,
+.skel-zone[data-skeleton="on"] span,
+.skel-zone[data-skeleton="on"] li,
+.skel-zone[data-skeleton="on"] div,
+.skel-zone[data-skeleton="on"] h1,
+.skel-zone[data-skeleton="on"] h2,
+.skel-zone[data-skeleton="on"] h3,
+.skel-zone[data-skeleton="on"] h4,
+.skel-zone[data-skeleton="on"] h5,
+.skel-zone[data-skeleton="on"] h6,
+.skel-zone[data-skeleton="on"] button,
+.skel-zone[data-skeleton="on"] a,
+.skel-zone[data-skeleton="on"] label {
+	color: transparent !important;
+	background-color: #e0e0e0 !important;
+	border-color: transparent !important;
+	text-shadow: none !important;
+}
+
+/* Images / SVGs: preserve box, hide content, paint gray */
+.skel-zone[data-skeleton="on"] img,
+.skel-zone[data-skeleton="on"] svg {
+	visibility: hidden;
+	/* keep width/height from attrs/styles */
+	background-color: #e0e0e0;
+}
+
+/* Inputs */
+.skel-zone[data-skeleton="on"] input,
+.skel-zone[data-skeleton="on"] textarea,
+.skel-zone[data-skeleton="on"] select {
+	color: transparent !important;
+	background-image: none !important;
+	border-color: transparent !important;
+	background-color: #e0e0e0 !important;
+}
+
+/* === ANNOTATIONS ========================================= */
+
+/* 1) IGNORE / KEEP:
+   - SkeletonIgnore: not skeletonized at all.
+   - SkeletonKeep: keep real look but still under shimmer overlay.
+*/
+
+/* Ignore: opt-out descendant subtree from gray backgrounds + text hiding */
+.skel-zone[data-skeleton="on"] .skel-ignore,
+.skel-zone[data-skeleton="on"] .skel-ignore * {
+	color: inherit !important;
+	background-color: transparent !important;
+	border-color: inherit !important;
+}
+
+/* Keep: same as ignore, but with different class name so you can tweak if needed */
+.skel-zone[data-skeleton="on"] .skel-keep,
+.skel-zone[data-skeleton="on"] .skel-keep * {
+	color: inherit !important;
+	background-color: inherit !important;
+	border-color: inherit !important;
+}
+
+/* 2) SHADE:
+   - SkeletonShade: keep real content but add local shimmer overlay.
+*/
+.skel-shade {
+	position: relative;
+}
+
+.skel-zone[data-skeleton="on"] .skel-shade::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background: linear-gradient(90deg,
+			rgba(255, 255, 255, 0) 0%,
+			rgba(255, 255, 255, 0.65) 50%,
+			rgba(255, 255, 255, 0) 100%);
+	transform: translateX(-100%);
+	animation: skel-shimmer 1.2s infinite;
+}
+
+/* 3) LEAF:
+   - SkeletonLeaf: treat the whole container as one bone (block).
+   We gray the container and don’t touch children individually.
+*/
+.skel-zone[data-skeleton="on"] .skel-leaf {
+	position: relative;
+	color: transparent !important;
+	background-color: #e0e0e0 !important;
+	border-radius: 8px;
+	/* tweak as you like */
+}
+
+.skel-zone[data-skeleton="on"] .skel-leaf * {
+	visibility: hidden;
+	/* preserve layout of internal structure */
+}
+
+/* 4) UNITE:
+   - SkeletonUnite: multiple small bones united as one block.
+   We rely on a wrapper with a fixed/min height and full width.
+*/
+.skel-zone[data-skeleton="on"] .skel-unite {
+	position: relative;
+	color: transparent !important;
+	background-color: #e0e0e0 !important;
+}
+
+.skel-zone[data-skeleton="on"] .skel-unite * {
+	visibility: hidden;
+}
+
+/* 5) IGNORE POINTERS:
+   - SkeletonIgnorePointers: disable pointer events while loading.
+*/
+.skel-zone[data-skeleton="on"] .skel-ignore-pointers {
+	pointer-events: none !important;
+}

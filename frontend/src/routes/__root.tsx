@@ -10,18 +10,18 @@ export const Route = createRootRoute({
 function RootComponent() {
   const authenticated = useAuthStore(state => state.authenticated)
   const isChecking = useAuthStore(state => state.isChecking)
-  const check = useAuthStore(state => state.check)
+  const checkAuth = useAuthStore(state => state.check)
   const navigate = useNavigate()
 
   useEffect(() => {
-    check()
+    checkAuth()
   }, [])
 
   useEffect(() => {
     if (!isChecking && !authenticated) {
       navigate({ to: "/auth", replace: true })
     }
-  }, [authenticated, isChecking, navigate])
+  }, [authenticated, isChecking])
 
 
   if(isChecking) {

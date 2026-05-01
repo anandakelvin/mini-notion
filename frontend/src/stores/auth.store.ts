@@ -20,9 +20,11 @@ export const useAuthStore = create<AuthStore>((set) => ({
         credentials: 'include',
       },
     )
-    if(response.ok){
+    if(response.ok) {
       const data = await response.text()
       set({ authenticated: data })
+    } else {
+      set({ authenticated: null})
     }
     set({ isChecking: false })
   },

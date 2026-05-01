@@ -15,7 +15,7 @@ function RouteComponent() {
     if (authenticated) {
       navigate({ to: "/notes", replace: true })
     }
-  }, [authenticated, navigate])
+  }, [authenticated])
 
 	return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background">
