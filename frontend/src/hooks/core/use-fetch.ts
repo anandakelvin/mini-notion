@@ -1,3 +1,4 @@
+import axios, { isCancel } from "axios";
 import { useAuthStore } from "frontend/src/stores/auth.store";
 import { useCallback, useEffect, useRef, useState } from "react";
  
@@ -66,22 +67,27 @@ export function useFetch<TData = unknown, TBody = unknown>(
       const requestBody = overrideBody ?? body;
  
       try {
-        const response = await fetch(url, {
-          method,
+        const response = await axios(url, {
+          method: method.toLowerCase(),
           signal: controller.signal,
-          credentials: "include",
+          withCredentials: true,
           headers: {
             "Content-Type": "application/json",
             ...headers,
           },
-          body:
+          data:
             requestBody !== undefined
               ? JSON.stringify(requestBody)
               : undefined,
         });
-
-        // ── 401 handling ────────────────────────────────────────────────────
-        if (response.status === 401) {
+        setState({ data: response.data, error: null, isLoading: false, status: response.status });
+        return response.data;
+      } catch (err) {
+        if (isCancel(err)) {
+          return null
+        } 
+        
+        if (err.response.status === 401) {
           onUnauthorized?.();
           authReset()
           setState({
@@ -93,31 +99,8 @@ export function useFetch<TData = unknown, TBody = unknown>(
           return null;
         }
  
-        // ── Non-2xx errors ───────────────────────────────────────────────────
-        if (!response.ok) {
-          const message = await response
-            .text()
-            .catch(() => `HTTP error ${response.status}`);
-          throw new Error(message || `HTTP error ${response.status}`);
-        }
- 
-        // ── Success ──────────────────────────────────────────────────────────
-        const contentType = response.headers.get("content-type") ?? "";
-        const data: TData = contentType.includes("application/json")
-          ? await response.json()
-          : ((await response.text()) as unknown as TData);
-
-        setState({ data, error: null, isLoading: false, status: response.status });
-        return data;
-      } catch (err) {
-        if ((err as Error).name === "AbortError") {
-          // Request was intentionally cancelled — don't update state
-          return null;
-        }
- 
-        const error = err instanceof Error ? err : new Error(String(err));
-        setState({ data: null, error, isLoading: false, status: null });
-        return null;
+        setState({ data: null, error: err.response.data, isLoading: false, status: err.response.status });
+        throw err
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps

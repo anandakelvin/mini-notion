@@ -1,5 +1,6 @@
 import { IconCirclePlus, IconTrash } from '@tabler/icons-react'
 import { createFileRoute } from '@tanstack/react-router'
+import { RemoveNoteAlertDialog } from 'frontend/src/components/alert-dialogs/remove-note.alert-dialog'
 import { Button } from 'frontend/src/components/ui/button'
 import { Item, ItemActions, ItemContent, ItemDescription, ItemTitle } from 'frontend/src/components/ui/item'
 import { Skeletonizer } from 'frontend/src/components/ui/skeletonizer'
@@ -12,7 +13,7 @@ export const Route = createFileRoute('/notes')({
 
 function RouteComponent() {
   const authenticated = useAuthStore(state => state.authenticated)
-  const { notes, isLoading } = useFetchNotes();
+  const { notes, isLoading, execute: fetchNotes } = useFetchNotes();
 
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background">
@@ -43,10 +44,11 @@ function RouteComponent() {
                 <ItemTitle>{note.title}</ItemTitle>
               </ItemContent>
               <ItemActions>
-                <Button size='sm' variant='destructive'>
-                  <IconTrash />
-                  Delete
-                </Button>
+                <RemoveNoteAlertDialog noteId={note.id} onSuccess={fetchNotes}>
+                  <Button size='sm' variant='destructive'>
+                    <IconTrash />
+                  </Button>
+                </RemoveNoteAlertDialog>
               </ItemActions>
             </Item>
           ))}
