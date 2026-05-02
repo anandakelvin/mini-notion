@@ -17,20 +17,26 @@ import { toast } from "sonner"
 export function RemoveNoteAlertDialog({ noteId, onSuccess, children }: {
   children: React.ReactNode, noteId: number, onSuccess?: () => void
 }) {
-  const { execute: onDelete, isLoading: isDeleting, error } = useDeleteNote(noteId)
+  const {
+    execute: deleteNote,
+    isLoading: isDeleting,
+    error: deleteNoteError
+  } = useDeleteNote(noteId)
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    if(error) {
-      toast.error(error.message)
+    if(deleteNoteError) {
+      toast.error(deleteNoteError.message)
     }
-  }, [error])
+  }, [deleteNoteError])
 
-  function onConfirm() {
-    onDelete().then(() => {
-      setOpen(false)
-      onSuccess?.()
-    })
+  function onSubmit() {
+    deleteNote().then(
+      () => {
+        setOpen(false)
+        onSuccess?.()
+      }
+    )
   }
 
   return (
@@ -59,7 +65,7 @@ export function RemoveNoteAlertDialog({ noteId, onSuccess, children }: {
           <Button
             variant="destructive"
             disabled={isDeleting}
-            onClick={onConfirm}
+            onClick={onSubmit}
           >
             {isDeleting ? "Deleting..." : "Delete"}
           </Button>

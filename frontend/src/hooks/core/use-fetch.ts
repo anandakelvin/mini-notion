@@ -82,7 +82,7 @@ export function useFetch<TData = unknown, TBody = unknown>(
         });
         setState({ data: response.data, error: null, isLoading: false, status: response.status });
         return response.data;
-      } catch (err) {
+      } catch (err: any) {
         if (isCancel(err)) {
           return null
         } 
@@ -96,10 +96,9 @@ export function useFetch<TData = unknown, TBody = unknown>(
             isLoading: false,
             status: 401,
           });
-          return null;
+        } else {
+          setState({ data: null, error: err.response.data, isLoading: false, status: err.response.status });
         }
- 
-        setState({ data: null, error: err.response.data, isLoading: false, status: err.response.status });
         throw err
       }
     },

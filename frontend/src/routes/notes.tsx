@@ -1,6 +1,7 @@
 import { IconCirclePlus, IconTrash } from '@tabler/icons-react'
 import { createFileRoute } from '@tanstack/react-router'
 import { RemoveNoteAlertDialog } from 'frontend/src/components/alert-dialogs/remove-note.alert-dialog'
+import { CreateNoteDialog } from 'frontend/src/components/dialogs/create-note.dialog'
 import { Button } from 'frontend/src/components/ui/button'
 import { Item, ItemActions, ItemContent, ItemDescription, ItemTitle } from 'frontend/src/components/ui/item'
 import { Skeletonizer } from 'frontend/src/components/ui/skeletonizer'
@@ -29,10 +30,12 @@ function RouteComponent() {
             </Skeletonizer>
           </ItemContent>
           <ItemActions>
-            <Button variant="outline" size="sm">
-              <IconCirclePlus />
-              New Note
-            </Button>
+            <CreateNoteDialog onSuccess={fetchNotes}>
+              <Button variant="outline" size="sm">
+                <IconCirclePlus />
+                New Note
+              </Button>
+            </CreateNoteDialog>
           </ItemActions>
         </Item>
 
