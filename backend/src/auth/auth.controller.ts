@@ -47,6 +47,15 @@ export class AuthController {
 			console.error(error);
 			throw new InternalServerErrorException("Unable to login user");			
 		}
+	}
 
+	@UseGuards(JwtAuthGuard)
+	@Post('logout')
+	async logout(@Res({passthrough: true}) response: any) : Promise<undefined> {
+		response.clearCookie('access_token', {
+			httpOnly: true,
+			sameSite: 'strict',
+			maxAge: 3600000,
+		});
 	}
 }

@@ -119,7 +119,7 @@ export function LoginForm({
                     onClick={toggleMode}
                     className="underline underline-offset-4"
                   >
-                    Login
+                    Log In
                   </button>
                 </>
               )}

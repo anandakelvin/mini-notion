@@ -22,8 +22,6 @@ interface FetchState<TData> {
   data: TData | null;
   error: Error | null;
   isLoading: boolean;
-  /** HTTP status of the last completed response. */
-  status: number | null;
 }
 
 interface UseFetchReturn<TData, TBody> extends FetchState<TData> {
@@ -34,7 +32,7 @@ interface UseFetchReturn<TData, TBody> extends FetchState<TData> {
 }
 
 function initialState<TData>(): FetchState<TData> {
-  return { data: null, error: null, isLoading: false, status: null };
+  return { data: null, error: null, isLoading: false };
 }
 
 export function useFetch<TData = unknown, TBody = unknown>(
@@ -80,24 +78,23 @@ export function useFetch<TData = unknown, TBody = unknown>(
               ? JSON.stringify(requestBody)
               : undefined,
         });
-        setState({ data: response.data, error: null, isLoading: false, status: response.status });
+        setState({ data: response.data, error: null, isLoading: false });
         return response.data;
       } catch (err: any) {
         if (isCancel(err)) {
           return null
         } 
         
-        if (err.response.status === 401) {
+        if (err.response?.status === 401) {
           onUnauthorized?.();
           authReset()
           setState({
             data: null,
             error: new Error("Unauthorized — redirecting to auth"),
             isLoading: false,
-            status: 401,
           });
         } else {
-          setState({ data: null, error: err.response.data, isLoading: false, status: err.response.status });
+          setState({ data: null, error: err.response?.data ?? err, isLoading: false });
         }
         throw err
       }

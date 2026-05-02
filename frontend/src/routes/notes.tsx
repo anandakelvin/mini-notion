@@ -1,8 +1,10 @@
-import { IconCirclePlus, IconTrash } from '@tabler/icons-react'
+import { IconCirclePlus, IconMenu2Filled, IconTrash } from '@tabler/icons-react'
 import { createFileRoute } from '@tanstack/react-router'
 import { RemoveNoteAlertDialog } from 'frontend/src/components/alert-dialogs/remove-note.alert-dialog'
 import { CreateNoteDialog } from 'frontend/src/components/dialogs/create-note.dialog'
+import { AccountDropdownMenu } from 'frontend/src/components/dropdown-menus/account.dropdown-menu'
 import { Button } from 'frontend/src/components/ui/button'
+import { ButtonGroup } from 'frontend/src/components/ui/button-group'
 import { Item, ItemActions, ItemContent, ItemDescription, ItemTitle } from 'frontend/src/components/ui/item'
 import { Skeletonizer } from 'frontend/src/components/ui/skeletonizer'
 import { useFetchNotes } from 'frontend/src/hooks/notes/use-fetch-notes'
@@ -17,9 +19,9 @@ function RouteComponent() {
   const { notes, isLoading, execute: fetchNotes } = useFetchNotes();
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background">
+    <div className="m-4 flex min-h-svh flex-col items-center justify-center gap-6 bg-background">
       {
-      <div className='w-[500px] flex flex-col gap-4'>
+      <div className='w-md flex flex-col gap-4'>
         <Item variant="outline">
           <ItemContent>
             <ItemTitle>{authenticated}</ItemTitle>
@@ -30,17 +32,24 @@ function RouteComponent() {
             </Skeletonizer>
           </ItemContent>
           <ItemActions>
-            <CreateNoteDialog onSuccess={fetchNotes}>
-              <Button variant="outline" size="sm">
-                <IconCirclePlus />
-                New Note
-              </Button>
-            </CreateNoteDialog>
+            <ButtonGroup>
+              <CreateNoteDialog onSuccess={fetchNotes}>
+                <Button variant="outline" size="sm">
+                  <IconCirclePlus />
+                  New Note
+                </Button>
+              </CreateNoteDialog>
+              <AccountDropdownMenu>
+                <Button variant="outline" size="sm" aria-label="More Options">
+                  <IconMenu2Filled />
+                </Button>
+              </AccountDropdownMenu>
+            </ButtonGroup>
           </ItemActions>
         </Item>
 
         { notes.length === 0 ? null :
-        <div className='w-[500px] flex flex-col gap-2'>
+        <div className='flex flex-col gap-2'>
           {notes.map((note) => (
             <Item key={note.id} variant='outline'>
               <ItemContent>

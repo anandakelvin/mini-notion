@@ -18,7 +18,7 @@ function RouteComponent() {
   }, [authenticated])
 
 	return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background">
+    <div className="m-4 flex min-h-svh flex-col items-center justify-center gap-6 bg-background">
       <div className="w-full max-w-sm">
         <LoginForm />
       </div>
