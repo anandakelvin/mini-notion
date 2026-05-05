@@ -1,6 +1,7 @@
 import { ArgumentsHost, Catch, HttpException, Logger, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE, BaseExceptionFilter } from '@nestjs/core';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AuthModule } from 'backend/src/auth/auth.module';
 import { NoteModule } from 'backend/src/note/note.module';
 import { PrismaModule } from 'backend/src/prisma/prisma.module';
@@ -27,7 +28,13 @@ export class HttpExceptionFilter extends BaseExceptionFilter {
 }
 
 @Module({
-  imports: [ConfigModule.forRoot({isGlobal: true}), PrismaModule, AuthModule, NoteModule],
+  imports: [
+    ConfigModule.forRoot({isGlobal: true}),
+    EventEmitterModule.forRoot(),
+    PrismaModule, 
+    AuthModule, 
+    NoteModule
+  ],
   controllers: [AppController],
   providers: [{
     provide: APP_PIPE,
