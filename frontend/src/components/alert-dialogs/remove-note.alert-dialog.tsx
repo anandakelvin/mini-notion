@@ -51,7 +51,7 @@ export function RemoveNoteAlertDialog({ noteId, onSuccess, children }: {
           </AlertDialogMedia>
           <AlertDialogTitle>Delete note?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete selected note.
+            This will permanently delete the selected note.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

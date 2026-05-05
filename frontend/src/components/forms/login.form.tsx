@@ -181,7 +181,7 @@ export function LoginForm({
 
           <Field>
             <Button type="submit" disabled={loading} className="w-full">
-              {loading ? "Please wait..." : mode === "login" ? "Login" : "Register"}
+              {loading ? "Please wait..." : mode === "login" ? "Log In" : "Register"}
             </Button>
           </Field>
           

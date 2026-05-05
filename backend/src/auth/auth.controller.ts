@@ -33,6 +33,7 @@ export class AuthController {
   }
 
 	@Post('login')
+  @HttpCode(HttpStatus.OK)
 	async login(@Res({passthrough: true}) response: any, @Body() dto: LoginRequestBody) : Promise<undefined> {
 		const validatedUser = await this.authService.validateUser(dto.email, dto.password);
 		

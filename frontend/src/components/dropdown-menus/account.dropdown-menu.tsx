@@ -1,3 +1,4 @@
+import { IconLogout2 } from "@tabler/icons-react"
 import { LogOutAlertDialog } from "frontend/src/components/alert-dialogs/log-out.alert-dialog"
 import {
 	DropdownMenu,
@@ -19,6 +20,7 @@ export function AccountDropdownMenu({ children }: {
         <DropdownMenuGroup>
 					<LogOutAlertDialog>
 						<DropdownMenuItem onSelect={e => e.preventDefault()}>
+							<IconLogout2 />
             	Log Out
 	          </DropdownMenuItem>
 					</LogOutAlertDialog>

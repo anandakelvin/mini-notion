@@ -43,7 +43,7 @@ export function LogOutAlertDialog({ children }: {
           <AlertDialogMedia className="text-default dark:text-default">
             <IconLogout2 />
           </AlertDialogMedia>
-          <AlertDialogTitle>Logout from Mini Notion?</AlertDialogTitle>
+          <AlertDialogTitle>Log out from Mini Notion?</AlertDialogTitle>
           <AlertDialogDescription>
             You may log in later to continue using Mini Notion.
           </AlertDialogDescription>
