@@ -1,5 +1,5 @@
 import { IconCirclePlus, IconMenu2Filled, IconTrash } from '@tabler/icons-react'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { RemoveNoteAlertDialog } from 'frontend/src/components/alert-dialogs/remove-note.alert-dialog'
 import { CreateNoteDialog } from 'frontend/src/components/dialogs/create-note.dialog'
 import { AccountDropdownMenu } from 'frontend/src/components/dropdown-menus/account.dropdown-menu'
@@ -10,7 +10,7 @@ import { Skeletonizer } from 'frontend/src/components/ui/skeletonizer'
 import { useFetchNotes } from 'frontend/src/hooks/notes/use-fetch-notes'
 import { useAuthStore } from 'frontend/src/stores/auth.store'
 
-export const Route = createFileRoute('/notes')({
+export const Route = createFileRoute('/notes/')({
   component: RouteComponent,
 })
 
@@ -53,7 +53,9 @@ function RouteComponent() {
           {notes.map((note) => (
             <Item key={note.id} variant='outline'>
               <ItemContent>
-                <ItemTitle>{note.title}</ItemTitle>
+								<Link to="/notes/$noteId" params={{ noteId: String(note.id) }}>
+	                <ItemTitle>{note.title}</ItemTitle>
+								</Link>
               </ItemContent>
               <ItemActions>
                 <RemoveNoteAlertDialog noteId={note.id} onSuccess={fetchNotes}>
