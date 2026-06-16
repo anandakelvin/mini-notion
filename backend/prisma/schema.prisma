@@ -24,12 +24,13 @@ model User {
 }
 
 model Note {
-  id         Int      @id @default(autoincrement())
-  title      String
-  user_id    Int
-  user       User     @relation(fields: [user_id], references: [id])
-  updated_at DateTime @updatedAt
-  created_at DateTime @default(now())
+  id             Int      @id @default(autoincrement())
+  title          String
+  user_id        Int
+  user           User     @relation(fields: [user_id], references: [id])
+  last_edited_by String?
+  updated_at     DateTime @updatedAt
+  created_at     DateTime @default(now())
 
   blocks Block[]
 }
