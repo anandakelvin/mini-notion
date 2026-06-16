@@ -11,5 +11,11 @@
   "license": "ISC",
   "dependencies": {
     "zod": "^4.3.6"
+  },
+  "pnpm": {
+    "overrides": {
+      "@tiptap/core": "3.22.5",
+      "@tiptap/react": "3.22.5"
+    }
   }
 }

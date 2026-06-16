@@ -9,8 +9,73 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { Skeletonizer } from "frontend/src/components/ui/skeletonizer";
 import { IconChevronLeft } from "@tabler/icons-react";
 import { Button } from "frontend/src/components/ui/button";
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
+import { Extension } from "@tiptap/core";
+import { Plugin, PluginKey } from "prosemirror-state";
+import { Decoration, DecorationSet } from "prosemirror-view";
+
+// Define custom collaborative cursor extension
+const CollaborativeCursor = Extension.create<{
+  cursorsRef: React.MutableRefObject<Record<string, { pos: number; email: string; color: string }>>;
+}>({
+  name: "collaborativeCursor",
+
+  addProseMirrorPlugins() {
+    const cursorsRef = this.options.cursorsRef;
+    return [
+      new Plugin({
+        key: new PluginKey("collaborativeCursor"),
+        props: {
+          decorations(state: any) {
+            const decos: any[] = [];
+            const cursors = cursorsRef.current || {};
+            Object.values(cursors).forEach((cursor) => {
+              if (cursor.pos >= 0 && cursor.pos <= state.doc.content.size) {
+                const cursorEl = document.createElement("span");
+                cursorEl.className = "remote-cursor-container";
+                cursorEl.style.position = "relative";
+                cursorEl.style.borderLeft = `2px solid ${cursor.color}`;
+                cursorEl.style.marginLeft = "-1px";
+                cursorEl.style.marginRight = "-1px";
+                cursorEl.style.height = "1.2em";
+                cursorEl.style.display = "inline-block";
+                cursorEl.style.verticalAlign = "middle";
+
+                const labelEl = document.createElement("span");
+                labelEl.className = "remote-cursor-label";
+                labelEl.textContent = cursor.email;
+                labelEl.style.position = "absolute";
+                labelEl.style.bottom = "100%";
+                labelEl.style.left = "0";
+                labelEl.style.background = cursor.color;
+                labelEl.style.color = "#ffffff";
+                labelEl.style.fontSize = "9px";
+                labelEl.style.padding = "1px 4px";
+                labelEl.style.borderRadius = "2px";
+                labelEl.style.whiteSpace = "nowrap";
+                labelEl.style.pointerEvents = "none";
+                labelEl.style.zIndex = "50";
+                labelEl.style.transform = "translateY(-2px)";
+                labelEl.style.fontWeight = "600";
+                labelEl.style.fontFamily = "Inter, sans-serif";
+
+                cursorEl.appendChild(labelEl);
+
+                const decoration = Decoration.widget(cursor.pos, cursorEl, {
+                  key: cursor.email,
+                  side: 1,
+                });
+                decos.push(decoration);
+              }
+            });
+            return DecorationSet.create(state.doc, decos);
+          },
+        },
+      }),
+    ];
+  },
+});
 
 export const Route = createFileRoute('/notes/$noteId')({
   component: RouteComponent,
@@ -23,7 +88,17 @@ function RouteComponent() {
   
   const [title, setTitle] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const editor = useCreateBlockNote();
+
+  const cursorsRef = useRef<Record<string, { pos: number; email: string; color: string }>>({});
+  const socketRef = useRef<Socket | null>(null);
+
+  const editor = useCreateBlockNote({
+    _tiptapOptions: {
+      extensions: [
+        CollaborativeCursor.configure({ cursorsRef }) as any
+      ]
+    }
+  });
   
   const hasInitialized = useRef(false);
   const saveTimeoutRef = useRef<any | null>(null);
@@ -53,6 +128,7 @@ function RouteComponent() {
     const socket = io("http://localhost:3000", {
       withCredentials: true,
     });
+    socketRef.current = socket;
 
     socket.on("connect", () => {
       socket.emit("join_note", { noteId: Number(noteId) });
@@ -79,14 +155,49 @@ function RouteComponent() {
       }
     });
 
+    socket.on("cursor_move", (data: { email: string; pos: number; color: string }) => {
+      cursorsRef.current[data.email] = {
+        pos: data.pos,
+        email: data.email,
+        color: data.color,
+      };
+      // Force ProseMirror view redraw to apply new decorations
+      if (editor?.prosemirrorView) {
+        editor.prosemirrorView.dispatch(editor.prosemirrorView.state.tr);
+      }
+    });
+
+    socket.on("user_left", (data: { email: string }) => {
+      delete cursorsRef.current[data.email];
+      if (editor?.prosemirrorView) {
+        editor.prosemirrorView.dispatch(editor.prosemirrorView.state.tr);
+      }
+    });
+
     socket.on("error", (err: any) => {
       toast.error(err.message || "WebSocket error");
     });
 
     return () => {
       socket.disconnect();
+      socketRef.current = null;
     };
   }, [noteId, editor]);
+
+  // Emit local cursor movement
+  useEffect(() => {
+    if (!editor) return;
+
+    return editor.onSelectionChange(() => {
+      const selection = editor.prosemirrorView?.state.selection;
+      if (!selection || !socketRef.current) return;
+
+      socketRef.current.emit("cursor_move", {
+        noteId: Number(noteId),
+        pos: selection.from,
+      });
+    });
+  }, [editor, noteId]);
 
   // Auto-save logic
   const triggerSave = useCallback((newTitle: string, newContent: any) => {

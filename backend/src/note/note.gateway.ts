@@ -55,7 +55,44 @@ export class NoteGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	handleDisconnect(client: Socket) {
-		// Connection cleanup handled automatically by Socket.io
+		if (client.data.user) {
+			this.server.emit("user_left", { email: client.data.user.email });
+		}
+	}
+
+	private getColor(email: string): string {
+		const colors = [
+			"#ef4444",
+			"#f97316",
+			"#f59e0b",
+			"#10b981",
+			"#06b6d4",
+			"#3b82f6",
+			"#6366f1",
+			"#8b5cf6",
+			"#d946ef",
+			"#ec4899",
+		];
+		let hash = 0;
+		for (let i = 0; i < email.length; i++) {
+			hash = email.charCodeAt(i) + ((hash << 5) - hash);
+		}
+		const index = Math.abs(hash) % colors.length;
+		return colors[index];
+	}
+
+	@SubscribeMessage("cursor_move")
+	handleCursorMove(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: { noteId: number; pos: number },
+	) {
+		if (!client.data.user) return;
+		const color = this.getColor(client.data.user.email);
+		client.to(`note_${data.noteId}`).emit("cursor_move", {
+			email: client.data.user.email,
+			pos: data.pos,
+			color,
+		});
 	}
 
 	@SubscribeMessage("join_note")
