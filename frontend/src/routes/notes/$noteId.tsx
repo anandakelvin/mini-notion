@@ -9,6 +9,8 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { Skeletonizer } from "frontend/src/components/ui/skeletonizer";
 import { IconChevronLeft } from "@tabler/icons-react";
 import { Button } from "frontend/src/components/ui/button";
+import { io } from "socket.io-client";
+import { toast } from "sonner";
 
 export const Route = createFileRoute('/notes/$noteId')({
   component: RouteComponent,
@@ -24,12 +26,21 @@ function RouteComponent() {
   const editor = useCreateBlockNote();
   
   const hasInitialized = useRef(false);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const saveTimeoutRef = useRef<any | null>(null);
+  const isLocalSaveRef = useRef(false);
+  const lastSavedAtRef = useRef<any | null>(null);
+  const titleRef = useRef("");
+
+  useEffect(() => {
+    titleRef.current = title;
+  }, [title]);
 
   // Initialize data once fetched
   useEffect(() => {
     if (note && !hasInitialized.current) {
       setTitle(note.title);
+      titleRef.current = note.title;
+      lastSavedAtRef.current = note.updated_at;
       if (note.content && Array.isArray(note.content)) {
         editor.replaceBlocks(editor.document, note.content);
       }
@@ -37,8 +48,48 @@ function RouteComponent() {
     }
   }, [note, editor]);
 
+  // Socket.io Realtime Syncing
+  useEffect(() => {
+    const socket = io("http://localhost:3000", {
+      withCredentials: true,
+    });
+
+    socket.on("connect", () => {
+      socket.emit("join_note", { noteId: Number(noteId) });
+    });
+
+    socket.on("note_updated", (updatedNote: any) => {
+      // If this update was triggered by our own save, skip applying it
+      if (isLocalSaveRef.current) {
+        isLocalSaveRef.current = false;
+        lastSavedAtRef.current = updatedNote.updated_at;
+        return;
+      }
+
+      // Update local state
+      setTitle(updatedNote.title);
+      titleRef.current = updatedNote.title;
+      lastSavedAtRef.current = updatedNote.updated_at;
+
+      // Only replace blocks if the content actually changed to avoid cursor jumps
+      const currentBlocksStr = JSON.stringify(editor.document);
+      const newBlocksStr = JSON.stringify(updatedNote.content || []);
+      if (currentBlocksStr !== newBlocksStr) {
+        editor.replaceBlocks(editor.document, updatedNote.content || []);
+      }
+    });
+
+    socket.on("error", (err: any) => {
+      toast.error(err.message || "WebSocket error");
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [noteId, editor]);
+
   // Auto-save logic
-  const triggerSave = useCallback(() => {
+  const triggerSave = useCallback((newTitle: string, newContent: any) => {
     if (!hasInitialized.current) return;
 
     if (saveTimeoutRef.current) {
@@ -48,25 +99,36 @@ function RouteComponent() {
     setIsSaving(true);
     saveTimeoutRef.current = setTimeout(async () => {
       try {
-        await updateNote({
-          title,
-          content: editor.document
+        isLocalSaveRef.current = true;
+        const res = await updateNote({
+          title: newTitle,
+          content: newContent,
+          updatedAt: lastSavedAtRef.current || undefined,
         });
-      } catch (error) {
-        console.error("Failed to save note:", error);
+        if (res) {
+          lastSavedAtRef.current = res.updated_at;
+        }
+      } catch (error: any) {
+        isLocalSaveRef.current = false;
+        if (error.response?.status === 409) {
+          toast.error("Conflict detected: This note was modified in another session. Please refresh to merge.");
+        } else {
+          toast.error("Failed to save note");
+        }
       } finally {
         setIsSaving(false);
       }
     }, 1000); // 1 second debounce
-  }, [title, editor.document, updateNote]);
+  }, [updateNote]);
 
   const handleEditorChange = () => {
-    triggerSave();
+    triggerSave(titleRef.current, editor.document);
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTitle(e.target.value);
-    triggerSave();
+    const val = e.target.value;
+    setTitle(val);
+    triggerSave(val, editor.document);
   };
 
   return (
@@ -96,8 +158,8 @@ function RouteComponent() {
       </div>
 
       <div className="w-full max-w-3xl px-8 pt-12 pb-32">
-        <div className="mb-10">
-          <Skeletonizer enabled={isLoading} className="w-full">
+        <div className="mb-10 w-full">
+          <Skeletonizer enabled={isLoading}>
             <input
               type="text"
               value={title}

@@ -21,7 +21,7 @@ import { jwtConstants } from "backend/src/auth/constants";
 })
 export class NoteGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer()
-	server: Server;
+	server!: Server;
 
 	constructor(
 		private readonly jwtService: JwtService,
@@ -31,8 +31,8 @@ export class NoteGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	async handleConnection(client: Socket) {
 		try {
 			const cookieHeader = client.handshake.headers.cookie || "";
-			const cookies = cookieHeader.split(";").reduce((acc, curr) => {
-				const [key, value] = curr.split("=").map((c) => c.trim());
+			const cookies = cookieHeader.split(";").reduce((acc: Record<string, string>, curr: string) => {
+				const [key, value] = curr.split("=").map((c: string) => c.trim());
 				if (key && value) {
 					acc[key] = decodeURIComponent(value);
 				}
