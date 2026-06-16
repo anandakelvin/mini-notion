@@ -1,11 +1,10 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, Sse, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "backend/src/auth/jwt-auth.guard";
 import { NoteService } from "backend/src/note/note.service";
 import { Note } from "backend/src/prisma/generated/prisma/client";
 import { ReqUser } from "backend/src/shared/decorator/user.decorator";
 import { handlePrismaNotFound } from "backend/src/shared/prisma.error-handles";
 import { IReqUser } from "backend/src/shared/types";
-import { Observable } from "rxjs";
 import { CreateNoteRequestBodyDto } from "shared/dto/note/body/create-note-body.dto";
 import { UpdateNoteRequestBodyDto } from "shared/dto/note/body/update-note-body.dto";
 
@@ -27,20 +26,9 @@ export class NoteController {
 
 	@UseGuards(JwtAuthGuard)
 	@Get(':id')
-	async getNoteById(@Param('id') id: string): Promise<Note> {
+	async getNoteById(@ReqUser() user: IReqUser, @Param('id') id: string): Promise<Note> {
 		return handlePrismaNotFound(
-			() => this.noteService.getNoteById(Number(id)),
-			() => {
-				throw new NotFoundException('Note not found');
-			}
-		)
-	}
-
-	@UseGuards(JwtAuthGuard)
-	@Sse(':id/stream')
-	async streamNoteById(@Param('id') id: string): Promise<Observable<MessageEvent<Note>>> {
-		return handlePrismaNotFound(
-			() => this.noteService.streamNoteById(Number(id)),
+			() => this.noteService.getNoteById(Number(id), user.userId),
 			() => {
 				throw new NotFoundException('Note not found');
 			}
@@ -49,9 +37,20 @@ export class NoteController {
 
 	@UseGuards(JwtAuthGuard)
 	@Put(':id')
-	async updateNote(@Param('id') id: string, @Body() body: UpdateNoteRequestBodyDto): Promise<Note> {
+	async updateNote(
+		@ReqUser() user: IReqUser,
+		@Param('id') id: string,
+		@Body() body: UpdateNoteRequestBodyDto
+	): Promise<Note> {
 		return handlePrismaNotFound(
-			() => this.noteService.updateNote(Number(id), body.title),
+			() => this.noteService.updateNote(
+				Number(id),
+				user.userId,
+				user.email,
+				body.title,
+				body.content,
+				body.updatedAt
+			),
 			() => {
 				throw new NotFoundException('Note not found');
 			}
@@ -60,10 +59,10 @@ export class NoteController {
 
 	@UseGuards(JwtAuthGuard)
 	@Delete(':id')
-	async deleteNote(@Param('id') id: string): Promise<undefined> {
+	async deleteNote(@ReqUser() user: IReqUser, @Param('id') id: string): Promise<undefined> {
 		return handlePrismaNotFound<undefined, undefined>(
 			async () => {
-				await this.noteService.deleteNote(Number(id));
+				await this.noteService.deleteNote(Number(id), user.userId);
 			},
 			() => {
 				throw new NotFoundException('Note not found');
