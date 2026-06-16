@@ -10,7 +10,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 model User {
@@ -34,13 +34,6 @@ model Note {
   blocks Block[]
 }
 
-enum BlockType {
-  TEXT
-  IMAGE
-  CODE
-  CHECKLIST
-}
-
 model Block {
   id          Int       @id @default(autoincrement())
   note_id     Int
@@ -48,7 +41,7 @@ model Block {
   parent_id   Int?
   parent      Block?    @relation("BlockChildren", fields: [parent_id], references: [id])
   children    Block[]   @relation("BlockChildren")
-  type        BlockType @default(TEXT)
+  type        String    @default("TEXT")
   content     String    @default("")
   order_index Int
 
