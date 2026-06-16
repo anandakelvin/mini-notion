@@ -30,7 +30,7 @@ export class HttpExceptionFilter extends BaseExceptionFilter {
 @Module({
   imports: [
     ConfigModule.forRoot({isGlobal: true}),
-    EventEmitterModule.forRoot(),
+    EventEmitterModule.forRoot({ wildcard: true }),
     PrismaModule, 
     AuthModule, 
     NoteModule
