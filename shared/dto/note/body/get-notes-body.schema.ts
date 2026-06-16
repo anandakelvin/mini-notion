@@ -4,6 +4,7 @@ import z from "zod";
 const NoteBody = z.object({
 	id: z.number(),
 	title: TitleSchema,
+	content: z.any().optional(),
 	user_id: z.number(),
 	created_at: z.date(),
 	updated_at: z.date(),
