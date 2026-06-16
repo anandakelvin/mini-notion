@@ -6,6 +6,7 @@ const NoteBody = z.object({
 	title: TitleSchema,
 	content: z.any().optional(),
 	user_id: z.number(),
+	last_edited_by: z.string().nullable().optional(),
 	created_at: z.date(),
 	updated_at: z.date(),
 });
