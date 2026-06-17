@@ -1,5 +1,6 @@
 import "@blocknote/core/fonts/inter.css";
-import { useCreateBlockNote } from "@blocknote/react";
+import { useCreateBlockNote, SuggestionMenuController, getDefaultReactSlashMenuItems } from "@blocknote/react";
+import { BlockNoteSchema, defaultBlockSpecs, filterSuggestionItems } from "@blocknote/core";
 import { BlockNoteView } from "@blocknote/shadcn";
 import "@blocknote/shadcn/style.css";
 import { createFileRoute, Link } from '@tanstack/react-router';
@@ -14,6 +15,15 @@ import { toast } from "sonner";
 import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
+
+const schema = BlockNoteSchema.create({
+  blockSpecs: {
+    paragraph: defaultBlockSpecs.paragraph,
+    checkListItem: defaultBlockSpecs.checkListItem,
+    image: defaultBlockSpecs.image,
+    codeBlock: defaultBlockSpecs.codeBlock,
+  },
+});
 
 // Define custom collaborative cursor extension
 const CollaborativeCursor = Extension.create<{
@@ -94,6 +104,7 @@ function RouteComponent() {
   const socketRef = useRef<Socket | null>(null);
 
   const editor = useCreateBlockNote({
+    schema,
     _tiptapOptions: {
       extensions: [
         CollaborativeCursor.configure({ cursorsRef }) as any
@@ -373,7 +384,18 @@ function RouteComponent() {
             <BlockNoteView 
               editor={editor} 
               onChange={handleEditorChange}
-            />
+              slashMenu={false}
+            >
+              <SuggestionMenuController
+                triggerCharacter={"/"}
+                getItems={async (query) => {
+                  const allItems = getDefaultReactSlashMenuItems(editor);
+                  const allowedTitles = ["Paragraph", "Check List", "Image", "Code Block"];
+                  const filtered = allItems.filter((item) => allowedTitles.includes(item.title));
+                  return filterSuggestionItems(filtered, query);
+                }}
+              />
+            </BlockNoteView>
           </div>
         </Skeletonizer>
       </div>
