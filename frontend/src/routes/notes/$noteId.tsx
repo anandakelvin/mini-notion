@@ -77,6 +77,39 @@ const findCheckboxChanges = (oldBlocks: any[], newBlocks: any[]) => {
   return changes;
 };
 
+const findImageChanges = (oldBlocks: any[], newBlocks: any[]) => {
+  const changes: Array<{ id: string; action: "added" | "updated" }> = [];
+  
+  const getImages = (blocks: any[]): Record<string, string> => {
+    const map: Record<string, string> = {};
+    const traverse = (list: any[]) => {
+      list.forEach((b) => {
+        if (b.type === "image") {
+          map[b.id] = b.props?.url || "";
+        }
+        if (b.children && Array.isArray(b.children)) {
+          traverse(b.children);
+        }
+      });
+    };
+    traverse(blocks);
+    return map;
+  };
+
+  const oldMap = getImages(oldBlocks);
+  const newMap = getImages(newBlocks);
+
+  Object.keys(newMap).forEach((id) => {
+    if (oldMap[id] === undefined) {
+      changes.push({ id, action: "added" });
+    } else if (oldMap[id] !== newMap[id]) {
+      changes.push({ id, action: "updated" });
+    }
+  });
+
+  return changes;
+};
+
 function ChecklistTooltips({ tooltips }: { tooltips: Record<string, { email: string; color: string; text: string }> }) {
   const [coords, setCoords] = useState<Record<string, { top: number; left: number }>>({});
 
@@ -87,7 +120,8 @@ function ChecklistTooltips({ tooltips }: { tooltips: Record<string, { email: str
         const blockEl = document.querySelector(`[data-id="${blockId}"]`);
         if (blockEl) {
           const checkboxEl = blockEl.querySelector(".bn-checkbox, input[type='checkbox']");
-          const target = checkboxEl || blockEl;
+          const imageEl = blockEl.querySelector("img, .bn-visual-editor");
+          const target = checkboxEl || imageEl || blockEl;
           
           const parent = document.getElementById("editor-container-wrapper");
           if (parent) {
@@ -271,35 +305,59 @@ function RouteComponent() {
         return;
       }
 
-      // Calculate checkbox changes before replacing blocks
+      // Calculate changes before replacing blocks
       const oldBlocks = editor.document;
       const newBlocks = updatedNote.content || [];
-      const changedList = findCheckboxChanges(oldBlocks, newBlocks);
+      const checkboxChanges = findCheckboxChanges(oldBlocks, newBlocks);
+      const imageChanges = findImageChanges(oldBlocks, newBlocks);
 
-      if (changedList.length > 0 && updatedNote.last_edited_by) {
+      if (updatedNote.last_edited_by) {
         const email = updatedNote.last_edited_by;
         const color = getColor(email);
+        const now = Date.now();
         
-        changedList.forEach((change) => {
+        checkboxChanges.forEach((change) => {
           setActionTooltips((prev) => ({
             ...prev,
             [change.id]: {
               email,
               color,
               text: change.checked ? "checked" : "unchecked",
-              timestamp: Date.now(),
+              timestamp: now,
             },
           }));
 
           setTimeout(() => {
             setActionTooltips((prev) => {
               const next = { ...prev };
-              if (next[change.id]?.timestamp === next[change.id]?.timestamp) {
+              if (next[change.id]?.timestamp === now) {
                 delete next[change.id];
               }
               return next;
             });
           }, 2500);
+        });
+
+        imageChanges.forEach((change) => {
+          setActionTooltips((prev) => ({
+            ...prev,
+            [change.id]: {
+              email,
+              color,
+              text: change.action === "added" ? "added image block" : "embedded image",
+              timestamp: now,
+            },
+          }));
+
+          setTimeout(() => {
+            setActionTooltips((prev) => {
+              const next = { ...prev };
+              if (next[change.id]?.timestamp === now) {
+                delete next[change.id];
+              }
+              return next;
+            });
+          }, 4000);
         });
       }
 
