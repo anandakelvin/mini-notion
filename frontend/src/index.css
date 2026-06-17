@@ -140,3 +140,15 @@
     @apply font-sans;
   }
 }
+
+/* Prevent clipping of collaborative cursor labels in BlockNote editor */
+.bn-block,
+.bn-block-content,
+.bn-inline-content,
+.bn-editor,
+.ProseMirror,
+.bn-block-container,
+.bn-block-outer {
+  overflow: visible !important;
+  contain: none !important;
+}
