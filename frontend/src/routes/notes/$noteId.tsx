@@ -25,6 +25,122 @@ const schema = BlockNoteSchema.create({
   },
 });
 
+const getColor = (email: string): string => {
+  const colors = [
+    "#ef4444",
+    "#f97316",
+    "#f59e0b",
+    "#10b981",
+    "#06b6d4",
+    "#3b82f6",
+    "#6366f1",
+    "#8b5cf6",
+    "#d946ef",
+    "#ec4899",
+  ];
+  let hash = 0;
+  for (let i = 0; i < email.length; i++) {
+    hash = email.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
+};
+
+const findCheckboxChanges = (oldBlocks: any[], newBlocks: any[]) => {
+  const changes: Array<{ id: string; checked: boolean }> = [];
+  
+  const getChecklists = (blocks: any[]): Record<string, boolean> => {
+    const map: Record<string, boolean> = {};
+    const traverse = (list: any[]) => {
+      list.forEach((b) => {
+        if (b.type === "checkListItem") {
+          map[b.id] = !!b.props?.checked;
+        }
+        if (b.children && Array.isArray(b.children)) {
+          traverse(b.children);
+        }
+      });
+    };
+    traverse(blocks);
+    return map;
+  };
+
+  const oldMap = getChecklists(oldBlocks);
+  const newMap = getChecklists(newBlocks);
+
+  Object.keys(newMap).forEach((id) => {
+    if (oldMap[id] !== undefined && oldMap[id] !== newMap[id]) {
+      changes.push({ id, checked: newMap[id] });
+    }
+  });
+
+  return changes;
+};
+
+function ChecklistTooltips({ tooltips }: { tooltips: Record<string, { email: string; color: string; text: string }> }) {
+  const [coords, setCoords] = useState<Record<string, { top: number; left: number }>>({});
+
+  useEffect(() => {
+    const updateCoords = () => {
+      const newCoords: Record<string, { top: number; left: number }> = {};
+      Object.keys(tooltips).forEach((blockId) => {
+        const blockEl = document.querySelector(`[data-id="${blockId}"]`);
+        if (blockEl) {
+          const checkboxEl = blockEl.querySelector(".bn-checkbox, input[type='checkbox']");
+          const target = checkboxEl || blockEl;
+          
+          const parent = document.getElementById("editor-container-wrapper");
+          if (parent) {
+            const parentRect = parent.getBoundingClientRect();
+            const targetRect = target.getBoundingClientRect();
+            
+            newCoords[blockId] = {
+              top: targetRect.top - parentRect.top,
+              left: targetRect.left - parentRect.left + targetRect.width + 8,
+            };
+          }
+        }
+      });
+      setCoords(newCoords);
+    };
+
+    updateCoords();
+    window.addEventListener("resize", updateCoords);
+    const interval = setInterval(updateCoords, 200);
+    return () => {
+      window.removeEventListener("resize", updateCoords);
+      clearInterval(interval);
+    };
+  }, [tooltips]);
+
+  return (
+    <>
+      {Object.entries(tooltips).map(([blockId, tooltip]) => {
+        const pos = coords[blockId];
+        if (!pos) return null;
+        return (
+          <div
+            key={blockId}
+            className="absolute z-50 pointer-events-none transition-all duration-300 animate-in fade-in slide-in-from-bottom-1"
+            style={{
+              top: `${pos.top - 6}px`,
+              left: `${pos.left}px`,
+            }}
+          >
+            <div
+              className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold text-white shadow-sm"
+              style={{ backgroundColor: tooltip.color }}
+            >
+              <span>{tooltip.email}</span>
+              <span className="opacity-75 font-normal">({tooltip.text})</span>
+            </div>
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
 // Define custom collaborative cursor extension
 const CollaborativeCursor = Extension.create<{
   cursorsRef: React.MutableRefObject<Record<string, { pos: number; email: string; color: string }>>;
@@ -99,6 +215,7 @@ function RouteComponent() {
   const [title, setTitle] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [remoteTitleCursors, setRemoteTitleCursors] = useState<Record<string, { pos: number; email: string; color: string }>>({});
+  const [actionTooltips, setActionTooltips] = useState<Record<string, { email: string; color: string; text: string; timestamp: number }>>({});
 
   const cursorsRef = useRef<Record<string, { pos: number; email: string; color: string }>>({});
   const socketRef = useRef<Socket | null>(null);
@@ -154,6 +271,38 @@ function RouteComponent() {
         return;
       }
 
+      // Calculate checkbox changes before replacing blocks
+      const oldBlocks = editor.document;
+      const newBlocks = updatedNote.content || [];
+      const changedList = findCheckboxChanges(oldBlocks, newBlocks);
+
+      if (changedList.length > 0 && updatedNote.last_edited_by) {
+        const email = updatedNote.last_edited_by;
+        const color = getColor(email);
+        
+        changedList.forEach((change) => {
+          setActionTooltips((prev) => ({
+            ...prev,
+            [change.id]: {
+              email,
+              color,
+              text: change.checked ? "checked" : "unchecked",
+              timestamp: Date.now(),
+            },
+          }));
+
+          setTimeout(() => {
+            setActionTooltips((prev) => {
+              const next = { ...prev };
+              if (next[change.id]?.timestamp === next[change.id]?.timestamp) {
+                delete next[change.id];
+              }
+              return next;
+            });
+          }, 2500);
+        });
+      }
+
       // Update local state
       setTitle(updatedNote.title);
       titleRef.current = updatedNote.title;
@@ -161,9 +310,9 @@ function RouteComponent() {
 
       // Only replace blocks if the content actually changed to avoid cursor jumps
       const currentBlocksStr = JSON.stringify(editor.document);
-      const newBlocksStr = JSON.stringify(updatedNote.content || []);
+      const newBlocksStr = JSON.stringify(newBlocks);
       if (currentBlocksStr !== newBlocksStr) {
-        editor.replaceBlocks(editor.document, updatedNote.content || []);
+        editor.replaceBlocks(editor.document, newBlocks);
       }
     });
 
@@ -379,7 +528,7 @@ function RouteComponent() {
         </div>
         
         <Skeletonizer enabled={isLoading}>
-          <div className="min-h-[500px] -ml-[54px]"> 
+          <div id="editor-container-wrapper" className="relative min-h-[500px] -ml-[54px]"> 
             {/* -ml-[54px] to align the content with the title, as BlockNote has gutter/icons */}
             <BlockNoteView 
               editor={editor} 
@@ -396,6 +545,7 @@ function RouteComponent() {
                 }}
               />
             </BlockNoteView>
+            <ChecklistTooltips tooltips={actionTooltips} />
           </div>
         </Skeletonizer>
       </div>
