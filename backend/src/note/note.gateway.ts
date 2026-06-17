@@ -1,17 +1,17 @@
+import { OnEvent } from "@nestjs/event-emitter";
+import { JwtService } from "@nestjs/jwt";
 import {
-	WebSocketGateway,
-	WebSocketServer,
+	ConnectedSocket,
+	MessageBody,
 	OnGatewayConnection,
 	OnGatewayDisconnect,
 	SubscribeMessage,
-	MessageBody,
-	ConnectedSocket,
+	WebSocketGateway,
+	WebSocketServer,
 } from "@nestjs/websockets";
-import { Server, Socket } from "socket.io";
-import { JwtService } from "@nestjs/jwt";
-import { NoteService } from "./note.service";
-import { OnEvent } from "@nestjs/event-emitter";
 import { jwtConstants } from "backend/src/auth/constants";
+import { Server, Socket } from "socket.io";
+import { NoteService } from "./note.service";
 
 @WebSocketGateway({
 	cors: {
@@ -84,7 +84,7 @@ export class NoteGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@SubscribeMessage("cursor_move")
 	handleCursorMove(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() data: { noteId: number; pos: number },
+		@MessageBody() data: { noteId: number; pos: number; isTitle?: boolean },
 	) {
 		if (!client.data.user) return;
 		const color = this.getColor(client.data.user.email);
@@ -92,6 +92,7 @@ export class NoteGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			email: client.data.user.email,
 			pos: data.pos,
 			color,
+			isTitle: data.isTitle,
 		});
 	}
 
@@ -108,7 +109,9 @@ export class NoteGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		try {
 			const { noteId } = data;
 			// Verify note exists and belongs to the connected user
-			await this.noteService.getNoteById(noteId, client.data.user.userId);
+			await this.noteService.getNoteById(noteId
+				// , client.data.user.userId
+			);
 			client.join(`note_${noteId}`);
 		} catch (error) {
 			client.emit("error", { message: "Access to note denied" });

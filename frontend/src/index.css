@@ -148,7 +148,8 @@
 .bn-editor,
 .ProseMirror,
 .bn-block-container,
-.bn-block-outer {
+.bn-block-outer,
+.bn-block-column {
   overflow: visible !important;
   contain: none !important;
 }

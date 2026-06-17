@@ -88,6 +88,7 @@ function RouteComponent() {
   
   const [title, setTitle] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [remoteTitleCursors, setRemoteTitleCursors] = useState<Record<string, { pos: number; email: string; color: string }>>({});
 
   const cursorsRef = useRef<Record<string, { pos: number; email: string; color: string }>>({});
   const socketRef = useRef<Socket | null>(null);
@@ -155,15 +156,35 @@ function RouteComponent() {
       }
     });
 
-    socket.on("cursor_move", (data: { email: string; pos: number; color: string }) => {
-      cursorsRef.current[data.email] = {
-        pos: data.pos,
-        email: data.email,
-        color: data.color,
-      };
-      // Force ProseMirror view redraw to apply new decorations
-      if (editor?.prosemirrorView) {
-        editor.prosemirrorView.dispatch(editor.prosemirrorView.state.tr);
+    socket.on("cursor_move", (data: { email: string; pos: number; color: string; isTitle?: boolean }) => {
+      if (data.isTitle) {
+        // Remove from ProseMirror cursors if present
+        delete cursorsRef.current[data.email];
+        if (editor?.prosemirrorView) {
+          editor.prosemirrorView.dispatch(editor.prosemirrorView.state.tr);
+        }
+        // Add to remote title cursors
+        setRemoteTitleCursors((prev) => ({
+          ...prev,
+          [data.email]: { pos: data.pos, email: data.email, color: data.color },
+        }));
+      } else {
+        // Remove from remote title cursors if present
+        setRemoteTitleCursors((prev) => {
+          const copy = { ...prev };
+          delete copy[data.email];
+          return copy;
+        });
+        // Add to ProseMirror cursors
+        cursorsRef.current[data.email] = {
+          pos: data.pos,
+          email: data.email,
+          color: data.color,
+        };
+        // Force ProseMirror view redraw to apply new decorations
+        if (editor?.prosemirrorView) {
+          editor.prosemirrorView.dispatch(editor.prosemirrorView.state.tr);
+        }
       }
     });
 
@@ -172,6 +193,11 @@ function RouteComponent() {
       if (editor?.prosemirrorView) {
         editor.prosemirrorView.dispatch(editor.prosemirrorView.state.tr);
       }
+      setRemoteTitleCursors((prev) => {
+        const copy = { ...prev };
+        delete copy[data.email];
+        return copy;
+      });
     });
 
     socket.on("error", (err: any) => {
@@ -242,6 +268,32 @@ function RouteComponent() {
     triggerSave(val, editor.document);
   };
 
+  const handleTitleCursor = (e: React.SyntheticEvent<HTMLInputElement>) => {
+    const target = e.currentTarget;
+    if (!socketRef.current) return;
+    socketRef.current.emit("cursor_move", {
+      noteId: Number(noteId),
+      pos: target.selectionStart || 0,
+      isTitle: true
+    });
+  };
+
+  const getCursorOffset = (text: string, pos: number): number => {
+    const span = document.createElement("span");
+    span.style.fontFamily = "Inter, sans-serif";
+    span.style.fontSize = "3rem"; // text-5xl
+    span.style.fontWeight = "700"; // font-bold
+    span.style.letterSpacing = "-0.025em"; // tracking-tight
+    span.style.position = "absolute";
+    span.style.visibility = "hidden";
+    span.style.whiteSpace = "pre";
+    span.textContent = text.substring(0, pos);
+    document.body.appendChild(span);
+    const width = span.getBoundingClientRect().width;
+    document.body.removeChild(span);
+    return width;
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col items-center">
       <div className="w-full max-w-4xl px-8 pt-4">
@@ -269,15 +321,49 @@ function RouteComponent() {
       </div>
 
       <div className="w-full max-w-3xl px-8 pt-12 pb-32">
-        <div className="mb-10 w-full">
+        <div className="mb-10 w-full relative">
           <Skeletonizer enabled={isLoading}>
             <input
               type="text"
               value={title}
               onChange={handleTitleChange}
+              onFocus={handleTitleCursor}
+              onKeyUp={handleTitleCursor}
+              onSelect={handleTitleCursor}
+              onClick={handleTitleCursor}
               placeholder="Untitled"
               className="text-5xl font-bold bg-transparent border-none outline-none w-full placeholder:text-muted-foreground/20 tracking-tight"
             />
+            {Object.values(remoteTitleCursors).map((cursor) => {
+              const offset = getCursorOffset(title, cursor.pos);
+              return (
+                <div
+                  key={cursor.email}
+                  className="absolute pointer-events-none transition-all duration-75"
+                  style={{
+                    left: `${offset}px`,
+                    top: "0px",
+                    height: "3.5rem", // match input height
+                  }}
+                >
+                  {/* Vertical Cursor Line */}
+                  <div
+                    className="w-[2px] h-full"
+                    style={{ backgroundColor: cursor.color }}
+                  />
+                  {/* Email Label above cursor */}
+                  <div
+                    className="absolute bottom-full left-0 mb-1 px-1.5 py-0.5 text-[9px] font-semibold rounded text-white whitespace-nowrap z-50"
+                    style={{
+                      backgroundColor: cursor.color,
+                      fontFamily: "Inter, sans-serif",
+                    }}
+                  >
+                    {cursor.email}
+                  </div>
+                </div>
+              );
+            })}
           </Skeletonizer>
         </div>
         

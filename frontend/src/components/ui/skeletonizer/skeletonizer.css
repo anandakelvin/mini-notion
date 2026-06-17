@@ -3,6 +3,9 @@
 /* Base wrapper: exists from first paint, no layout shift */
 .skel-zone {
 	position: relative;
+}
+
+.skel-zone[data-skeleton="on"] {
 	overflow: hidden;
 }
 
