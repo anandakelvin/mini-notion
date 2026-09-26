@@ -109,9 +109,7 @@ export class NoteGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		try {
 			const { noteId } = data;
 			// Verify note exists and belongs to the connected user
-			await this.noteService.getNoteById(noteId
-				// , client.data.user.userId
-			);
+			await this.noteService.getNoteById(noteId, client.data.user.userId);
 			client.join(`note_${noteId}`);
 		} catch (error) {
 			client.emit("error", { message: "Access to note denied" });
