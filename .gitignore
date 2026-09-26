@@ -10,3 +10,5 @@ node_modules/
 # Local env files and sensitive config
 .env
 .npmrc
+.neon
+.env.local
