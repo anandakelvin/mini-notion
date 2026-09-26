@@ -267,6 +267,7 @@ function RouteComponent() {
   const hasInitialized = useRef(false);
   const saveTimeoutRef = useRef<any | null>(null);
   const isLocalSaveRef = useRef(false);
+  const isApplyingRemoteRef = useRef(false);
   const lastSavedAtRef = useRef<any | null>(null);
   const titleRef = useRef("");
 
@@ -371,7 +372,13 @@ function RouteComponent() {
       const currentBlocksStr = JSON.stringify(editor.document);
       const newBlocksStr = JSON.stringify(newBlocks);
       if (currentBlocksStr !== newBlocksStr) {
-        editor.replaceBlocks(editor.document, newBlocks);
+        // replaceBlocks fires onChange; don't save the remote content back as our own edit
+        isApplyingRemoteRef.current = true;
+        try {
+          editor.replaceBlocks(editor.document, newBlocks);
+        } finally {
+          isApplyingRemoteRef.current = false;
+        }
       }
     });
 
@@ -478,6 +485,7 @@ function RouteComponent() {
   }, [updateNote]);
 
   const handleEditorChange = () => {
+    if (isApplyingRemoteRef.current) return;
     triggerSave(titleRef.current, editor.document);
   };
 
