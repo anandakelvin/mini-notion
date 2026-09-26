@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { User } from "backend/src/prisma/generated/prisma/client";
 import { PrismaService } from "backend/src/prisma/prisma.service";
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { LoginResponseBody } from "shared/dto/auth/body/login-body.schema";
 
 @Injectable()
