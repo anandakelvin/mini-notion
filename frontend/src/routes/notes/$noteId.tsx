@@ -1,3 +1,4 @@
+import { API_URL } from "frontend/src/lib/utils"
 import "@blocknote/core/fonts/inter.css";
 import { useCreateBlockNote, SuggestionMenuController, getDefaultReactSlashMenuItems } from "@blocknote/react";
 import { BlockNoteSchema, defaultBlockSpecs, filterSuggestionItems } from "@blocknote/core";
@@ -288,7 +289,7 @@ function RouteComponent() {
 
   // Socket.io Realtime Syncing
   useEffect(() => {
-    const socket = io("http://localhost:3000", {
+    const socket = io(API_URL, {
       withCredentials: true,
     });
     socketRef.current = socket;

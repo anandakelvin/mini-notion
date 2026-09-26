@@ -1,3 +1,4 @@
+import { API_URL } from "frontend/src/lib/utils"
 // store/bearStore.ts
 import { create } from 'zustand'
 
@@ -16,7 +17,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
   check: async () => {
     set({ isChecking: true })
     const response = await fetch(
-      'http://localhost:3000/auth/check', {
+      `${API_URL}/auth/check`, {
         credentials: 'include',
       },
     )

@@ -1,3 +1,4 @@
+import { API_URL } from "frontend/src/lib/utils"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { LayoutBottomIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
@@ -47,7 +48,7 @@ export function LoginForm({
     const endpoint = mode === "login" ? "/auth/login" : "/auth/register"
     
     try {
-      const response = await fetch(`http://localhost:3000${endpoint}`, {
+      const response = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
