@@ -48,7 +48,7 @@ export function LoginForm({
     const endpoint = mode === "login" ? "/auth/login" : "/auth/register"
     
     try {
-      const response = await fetch(`${API_URL}${endpoint}`, {
+      const response = await fetch(`${API_URL}/api${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

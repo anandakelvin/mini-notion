@@ -17,7 +17,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
   check: async () => {
     set({ isChecking: true })
     const response = await fetch(
-      `${API_URL}/auth/check`, {
+      `${API_URL}/api/auth/check`, {
         credentials: 'include',
       },
     )

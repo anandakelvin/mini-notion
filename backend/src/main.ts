@@ -4,6 +4,7 @@ import { AppModule } from './app/app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.setGlobalPrefix('api');
   app.use(cookieParser());
   app.enableCors({
     origin: process.env.FRONTEND_URL ?? ['http://localhost:5173', 'http://localhost:4173'],

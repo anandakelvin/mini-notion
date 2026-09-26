@@ -3,7 +3,7 @@ import { useFetch } from "frontend/src/hooks/core/use-fetch";
 import type { GetNotesResponseBody } from "shared/dto/note/body/get-notes-body.schema";
 
 export function useFetchNote(noteId: string) {
-	const { data, ...rest } = useFetch<GetNotesResponseBody[number]>(`${API_URL}/notes/${noteId}`);
+	const { data, ...rest } = useFetch<GetNotesResponseBody[number]>(`${API_URL}/api/notes/${noteId}`);
 
 	return { note: data, ...rest };
 }

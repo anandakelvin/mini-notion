@@ -4,7 +4,7 @@ import { type CreateNoteRequestBody } from "shared/dto/note/body/create-note-bod
 
 export function useCreateNote() {
 	return useFetch<unknown, CreateNoteRequestBody>(
-		`${API_URL}/notes`, 
+		`${API_URL}/api/notes`, 
 		{
 			method: "POST",
 			manual: true,

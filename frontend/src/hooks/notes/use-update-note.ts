@@ -5,7 +5,7 @@ import type { GetNotesResponseBody } from "shared/dto/note/body/get-notes-body.s
 
 export function useUpdateNote(noteId: string) {
 	const { execute, ...rest } = useFetch<GetNotesResponseBody[number], UpdateNoteRequestBody>(
-		`${API_URL}/notes/${noteId}`,
+		`${API_URL}/api/notes/${noteId}`,
 		{
 			method: "PUT",
 			manual: true,
