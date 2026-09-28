@@ -16,16 +16,20 @@ deploy_backend() {
 	cp backend/package.json .deploy/backend/
 	(cd .deploy/backend && npm install --omit=dev --no-audit --no-fund --loglevel=error)
 
-	rsync -az --delete backend/dist/ hb:app/dist/
-	rsync -az --delete .deploy/backend/node_modules/ hb:app/node_modules/
-	rsync -az backend/package.json hb:app/
+	rsync -az --delete backend/dist/ hb:projects/mini-notion/dist/
+	rsync -az --delete .deploy/backend/node_modules/ hb:projects/mini-notion/node_modules/
+	rsync -az backend/package.json hb:projects/mini-notion/
 
 	(cd backend && npx prisma migrate deploy)
 
 	ssh hb 'export XDG_RUNTIME_DIR=/run/user/$(id -u); systemctl --user restart mini-notion'
-	sleep 3
-	# Expect 401: the API is up and wants a login.
-	curl -s -o /dev/null -w "backend check: %{http_code} (expect 401)\n" "$BACKEND_URL/api/notes"
+	# Expect 401: the API is up and wants a login. Startup takes a few seconds.
+	for _ in $(seq 30); do
+		code=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/api/notes")
+		[ "$code" = 401 ] && break
+		sleep 1
+	done
+	echo "backend check: $code (expect 401)"
 }
 
 deploy_frontend() {
