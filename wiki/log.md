@@ -41,3 +41,6 @@ Append-only. Newest at the bottom. `grep '^## \[' wiki/log.md | tail -10` shows 
 - `scripts/deploy.sh backend`: no pending migrations, check 401.
 - Verified live: token with the old public key → 401 (through Pages and direct); token with the new secret, on the server → 200; service active, 0 restarts. Existing logins ended.
 - Owner confirmed Koyeb is not used → ADR-014; `Dockerfile` proposed for retirement; deployment page now documents the server env.
+
+## [2026-10-01] correction | ADR-006 history
+- Owner confirmed: removing the owner checks in `384dd71` was deliberate (cross-user editing by URL). `3b9500c` reverted it as if it were a bug. ADR-006 context corrected; its decision still matches the code until the owner chooses whether to bring cross-user editing back.

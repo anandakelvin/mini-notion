@@ -70,7 +70,7 @@ ADR-001 to ADR-011 were written on 2026-10-01, after the fact, from the code and
 ## ADR-006: A note is only visible to its owner, also over the socket
 
 - **Status**: Accepted
-- **Context**: Commit `384dd71` (2026-06-18) removed the owner checks from the note service and gateway. Commit `3b9500c` (2026-09-27) restored them before deploy.
+- **Context**: Commit `384dd71` (2026-06-18) removed the owner checks from note open, update and socket join, **on purpose** (confirmed by the owner, 2026-10-01): any logged-in user with the note URL could edit it live with others. List and delete stayed owner-only. Commit `3b9500c` (2026-09-27) put the checks back, treating the change as a bug. That reversal was not the owner's decision.
 - **Decision**: Every note query filters by `user_id`. `join_note` calls `getNoteById(noteId, userId)` before joining the room.
 - **Consequences**: Live sync is between windows and devices of the **same account**. There is no sharing between users.
 
