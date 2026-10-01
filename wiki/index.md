@@ -16,7 +16,7 @@ Start here. Pick the pages for your task. Read source code only when the wiki is
 - [glossary](glossary.md) — terms used in code and in this wiki
 
 ## Architecture
-- [decisions](architecture/decisions.md) — ADR-001 to ADR-014: why things are the way they are
+- [decisions](architecture/decisions.md) — ADR-001 to ADR-015: why things are the way they are
 - [data model](architecture/data-model.md) — tables, and how the editor's block tree is stored
 - [pitfalls](architecture/pitfalls.md) — library and server gotchas that already cost time
 

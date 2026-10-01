@@ -26,9 +26,9 @@ export class NoteController {
 
 	@UseGuards(JwtAuthGuard)
 	@Get(':id')
-	async getNoteById(@ReqUser() user: IReqUser, @Param('id') id: string): Promise<Note> {
+	async getNoteById(@Param('id') id: string): Promise<Note> {
 		return handlePrismaNotFound(
-			() => this.noteService.getNoteById(Number(id), user.userId),
+			() => this.noteService.getNoteById(Number(id)),
 			() => {
 				throw new NotFoundException('Note not found');
 			}
@@ -45,7 +45,6 @@ export class NoteController {
 		return handlePrismaNotFound(
 			() => this.noteService.updateNote(
 				Number(id),
-				user.userId,
 				user.email,
 				body.title,
 				body.content,

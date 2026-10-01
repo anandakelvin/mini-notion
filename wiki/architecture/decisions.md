@@ -69,7 +69,7 @@ ADR-001 to ADR-011 were written on 2026-10-01, after the fact, from the code and
 
 ## ADR-006: A note is only visible to its owner, also over the socket
 
-- **Status**: Accepted
+- **Status**: Superseded by [ADR-015](#adr-015-any-logged-in-user-can-open-and-edit-a-note-by-its-url)
 - **Context**: Commit `384dd71` (2026-06-18) removed the owner checks from note open, update and socket join, **on purpose** (confirmed by the owner, 2026-10-01): any logged-in user with the note URL could edit it live with others. List and delete stayed owner-only. Commit `3b9500c` (2026-09-27) put the checks back, treating the change as a bug. That reversal was not the owner's decision.
 - **Decision**: Every note query filters by `user_id`. `join_note` calls `getNoteById(noteId, userId)` before joining the room.
 - **Consequences**: Live sync is between windows and devices of the **same account**. There is no sharing between users.
@@ -153,3 +153,23 @@ ADR-001 to ADR-011 were written on 2026-10-01, after the fact, from the code and
 - **Context**: A Dockerfile for Koyeb was added on 2026-09-27 (commit `d34cea3`). The same day, the deploy moved to hashbang (commits `693f642`, `e967f7f`).
 - **Decision**: The backend runs only on the owner's own hashbang account, as a systemd user service (confirmed by the owner, 2026-10-01). Koyeb is not used. The owner did not give a reason, so none is recorded here.
 - **Consequences**: The `Dockerfile` is unused. Server limits shape the build ([ADR-009](#adr-009-pure-js-dependencies-only)). Server secrets live in `~/projects/mini-notion/.env` ([deployment](../modules/deployment.md#server-environment)).
+
+---
+
+## ADR-015: Any logged-in user can open and edit a note by its URL
+
+- **Status**: Accepted
+- **Context**: The owner's original design (`384dd71`): live collaboration between different accounts, by sharing the note URL. `3b9500c` reversed it by mistake ([ADR-006](#adr-006-a-note-is-only-visible-to-its-owner-also-over-the-socket)). Recruiters need to test collaboration with two accounts.
+- **Decision**: Opening a note (`GET /api/notes/:id`), saving it (`PUT`) and joining its socket room (`join_note`) only require a login, not ownership. Listing (`GET /api/notes`) and deleting (`DELETE`) stay owner-only. Rejected: a per-note share switch or invites — both need a migration, and the owner already tested and wanted this simpler behavior.
+- **Requirements**:
+  - FR-001: A logged-in user who is not the owner can open a note by id.
+  - FR-002: That user can save the note; `last_edited_by` becomes their email, and the room receives `note_updated`.
+  - FR-003: That user can join the note's socket room.
+  - FR-004: The note list shows only the caller's own notes.
+  - FR-005: Only the owner can delete a note; others get 404.
+  - FR-006: Not logged in still gets 401 (REST) or a disconnect (socket).
+- **Success criteria**:
+  - SC-001: Unit tests on `NoteService` cover FR-001, FR-002, FR-004 and FR-005, and fail if the owner filter comes back on open or save.
+  - SC-002: `pnpm review` exits 0.
+- **Assumptions**: The conflict check (ADR-004) is enough protection against two users overwriting each other. Note ids stay sequential, so a logged-in user can open any note by guessing a number; the owner accepts this (2026-10-01).
+- **Consequences**: Real multi-user collaboration with different emails and cursor colors. No privacy between accounts for a note whose id is known.

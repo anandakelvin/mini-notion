@@ -30,7 +30,7 @@ A task that changed code is not done until `pnpm review` exits 0. Report the rea
 
 ## Known gaps (2026-10-01)
 
-- Test coverage is thin: unit tests for `AppController` and the JWT secret (`auth/constants.spec.ts`), and one e2e test (`GET /api`). Most logic in `NoteService` and `NoteGateway` has no test.
+- Test coverage is thin: unit tests for `AppController`, the JWT secret (`auth/constants.spec.ts`) and note access rules (`note/note.service.spec.ts`), and one e2e test (`GET /api`). Block storage in `NoteService` and all of `NoteGateway` have no test.
 - The e2e test boots the full `AppModule`. `ConfigModule` loads `backend/.env`, which points at the **production** database. Prisma only connects on the first query, and the current e2e test makes no query. A new e2e test that touches notes or users **would write to production**. Read `production-safety.md` before adding one.
 - The e2e test also needs `JWT_SECRET` (from `backend/.env`), because `JwtStrategy` reads it at startup. A CI job must set it.
 - Lint is not in the gate. See `code-formatters.md`.

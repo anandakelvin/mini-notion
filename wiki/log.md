@@ -44,3 +44,9 @@ Append-only. Newest at the bottom. `grep '^## \[' wiki/log.md | tail -10` shows 
 
 ## [2026-10-01] correction | ADR-006 history
 - Owner confirmed: removing the owner checks in `384dd71` was deliberate (cross-user editing by URL). `3b9500c` reverted it as if it were a bug. ADR-006 context corrected; its decision still matches the code until the owner chooses whether to bring cross-user editing back.
+
+## [2026-10-01] change | cross-user editing restored (ADR-015)
+- Why: the owner's original design (`384dd71`) let any logged-in user open and edit a note by URL; `3b9500c` reversed it by mistake. Recruiters need two accounts to see real collaboration.
+- Open, save and `join_note` no longer check the owner; list and delete still do. ADR-006 superseded; notes, realtime and data-model pages and the README updated (README now has "Try the live collaboration" steps).
+- Proof: `note.service.spec.ts` 4/4 pass; with an owner filter put back on open and save, exactly those 2 fail. `pnpm review` exit 0.
+- Not yet deployed.

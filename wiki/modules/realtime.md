@@ -12,7 +12,7 @@ confidence: high
 
 # Realtime
 
-Live sync between open windows of the same note, over Socket.io ([ADR-005](../architecture/decisions.md#adr-005-live-sync-with-socketio-rooms-and-the-nest-event-emitter)). Only windows of the same account can join a note's room ([ADR-006](../architecture/decisions.md#adr-006-a-note-is-only-visible-to-its-owner-also-over-the-socket)).
+Live sync between open windows of the same note, over Socket.io ([ADR-005](../architecture/decisions.md#adr-005-live-sync-with-socketio-rooms-and-the-nest-event-emitter)). Any logged-in user can join a note's room, so different accounts edit together, each with their own email and cursor color ([ADR-015](../architecture/decisions.md#adr-015-any-logged-in-user-can-open-and-edit-a-note-by-its-url)).
 
 ## Connection
 
@@ -22,7 +22,7 @@ Live sync between open windows of the same note, over Socket.io ([ADR-005](../ar
 
 | Event | Direction | Payload | What happens |
 |---|---|---|---|
-| `join_note` | client → server | `{ noteId }` | Checks ownership with `getNoteById`, then joins room `note_<id>`. On failure emits `error`. |
+| `join_note` | client → server | `{ noteId }` | Checks the note exists with `getNoteById` (no owner check), then joins room `note_<id>`. On failure emits `error`. |
 | `cursor_move` | client → server | `{ noteId, pos, isTitle? }` | Sent to the rest of the room with the sender's email and a color. |
 | `cursor_move` | server → client | `{ email, pos, color, isTitle? }` | Draws a remote cursor in the title or the editor. |
 | `note_updated` | server → client | full note with `content` | Sent to room `note_<id>` after every save (from `@OnEvent('note.*.updated')`). |

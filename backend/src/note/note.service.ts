@@ -114,11 +114,10 @@ export class NoteService {
 		}));
 	}
 
-	async getNoteById(noteId: number, userId: number): Promise<any> {
+	async getNoteById(noteId: number): Promise<any> {
 		const note = await this.prisma.note.findFirstOrThrow({
 			where: {
 				id: noteId,
-				user_id: userId,
 			},
 			include: {
 				blocks: true,
@@ -145,7 +144,6 @@ export class NoteService {
 
 	async updateNote(
 		noteId: number,
-		userId: number,
 		email: string,
 		title: string,
 		content?: any,
@@ -154,7 +152,6 @@ export class NoteService {
 		const note = await this.prisma.note.findFirstOrThrow({
 			where: {
 				id: noteId,
-				user_id: userId,
 			}
 		});
 

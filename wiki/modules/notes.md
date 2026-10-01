@@ -9,6 +9,7 @@ sources:
   - shared/dto/note/body/create-note-body.schema.ts
   - shared/dto/note/body/update-note-body.schema.ts
   - shared/value-object/strings.ts
+  - backend/src/note/note.service.spec.ts
 source_commit: e967f7f
 confidence: high
 ---
@@ -19,15 +20,15 @@ REST CRUD for notes. Storage format is in [data model](../architecture/data-mode
 
 ## Endpoints
 
-All use `JwtAuthGuard` and only see the caller's own notes ([ADR-006](../architecture/decisions.md#adr-006-a-note-is-only-visible-to-its-owner-also-over-the-socket)).
+All use `JwtAuthGuard`. Open and save work for **any logged-in user**; list and delete are owner-only ([ADR-015](../architecture/decisions.md#adr-015-any-logged-in-user-can-open-and-edit-a-note-by-its-url)).
 
 | Method | Path | Body | Result |
 |---|---|---|---|
 | POST | `/api/notes` | `{ title }` | The new note, `content: []`. |
 | GET | `/api/notes` | — | All the user's notes, each with `content` rebuilt from blocks. |
-| GET | `/api/notes/:id` | — | One note with `content`. 404 if missing or not owned. |
-| PUT | `/api/notes/:id` | `{ title, content?, updatedAt? }` | The saved note with `content`. 404, or 409 on conflict. |
-| DELETE | `/api/notes/:id` | — | Deletes blocks, then the note. 404 if missing or not owned. |
+| GET | `/api/notes/:id` | — | One note with `content`. Any logged-in user. 404 if missing. |
+| PUT | `/api/notes/:id` | `{ title, content?, updatedAt? }` | Any logged-in user. The saved note with `content`. 404, or 409 on conflict. |
+| DELETE | `/api/notes/:id` | — | Owner only. Deletes blocks, then the note. 404 if missing or not owned. |
 
 `title` (`TitleSchema`): trimmed, 1–100 characters, no line breaks. `content` is `z.any()` — not validated.
 
@@ -40,7 +41,7 @@ sequenceDiagram
   participant DB as Postgres
   participant E as EventEmitter
   C->>S: updateNote(id, user, title, content, updatedAt)
-  S->>DB: findFirstOrThrow(id, user_id)
+  S->>DB: findFirstOrThrow(id)
   alt |updatedAt - updated_at| > 1000 ms
     S-->>C: 409 Conflict
   end

@@ -7,8 +7,14 @@ A small Notion-style note app with live sync between open windows.
 - Email and password accounts. The session is a JWT in an HttpOnly cookie.
 - Notes with a block editor: paragraph, checklist, image, code.
 - Auto-save, one second after you stop typing.
-- Live sync over Socket.io between every open window of the same note, with remote cursors and short labels like "checked" or "added image block".
+- Live collaboration over Socket.io: anyone logged in can open a note by its URL and edit it together with others, with remote cursors and short labels like "checked" or "added image block". Your note list shows only your own notes, and only the owner can delete a note.
 - Conflict check: a save based on an old version gets `409`, never a silent overwrite.
+
+### Try the live collaboration
+
+1. Open the live app, register account A, create a note, and copy its URL.
+2. Open a private window, register account B, and paste the URL.
+3. Type in either window. You see the other account's cursor, email and color, and their edits arrive within about a second.
 
 ## Stack
 

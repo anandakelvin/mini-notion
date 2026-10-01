@@ -59,4 +59,6 @@ If `content` is not valid JSON, `reconstructBlocks` falls back to `{ id: <row id
 
 ## Ownership
 
-`Note.user_id` is the owner. Every service method filters by `user_id` (`findFirstOrThrow({ where: { id, user_id } })`), so another user's note looks like "not found" (404). There is no sharing between users.
+`Note.user_id` is the owner. Only `getNotes` (list) and `deleteNote` filter by `user_id`; for those, another user's note looks like "not found" (404). `getNoteById` and `updateNote` look up by `id` only, so any logged-in user can open and save a note by its URL ([ADR-015](decisions.md#adr-015-any-logged-in-user-can-open-and-edit-a-note-by-its-url)).
+
+> **Superseded 2026-10-01**: previously said every service method filters by `user_id` and there is no sharing between users.
