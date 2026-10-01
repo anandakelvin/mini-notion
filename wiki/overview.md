@@ -25,7 +25,7 @@ mini-notion is a small Notion-style note app with live sync between open windows
 | `frontend/functions/` | Cloudflare Pages Functions that proxy `/api` and `/socket.io` to the backend. |
 | `shared/` | zod schemas (`*.schema.ts`) and Nest DTO classes (`*.dto.ts`) for request bodies. |
 | `scripts/deploy.sh` | Deploys the backend to hashbang or the frontend to Cloudflare Pages. |
-| `Dockerfile` | Backend image, added for Koyeb (commit `d34cea3`). Not used by `deploy.sh`. |
+| `Dockerfile` | Backend image, added for Koyeb (commit `d34cea3`). Unused: the backend runs on hashbang ([ADR-014](architecture/decisions.md#adr-014-backend-on-own-hashbang-account-not-koyeb)). |
 
 Path aliases: `backend/*`, `frontend/*` and `shared/*` resolve from the repo root (`tsconfig.base.json`, Vite `resolve.alias`, Jest `moduleNameMapper`).
 

@@ -70,6 +70,7 @@ wiki/
 
 - `docs/architecture.md` — its two pitfalls are absorbed into [pitfalls](architecture/pitfalls.md). Proposed for retirement; **never delete automatically**.
 - `backend/README.md`, `frontend/README.md` — unchanged framework boilerplate (Nest, Vite). Proposed for retirement.
+- `Dockerfile` — built for Koyeb, which is not used ([ADR-014](architecture/decisions.md#adr-014-backend-on-own-hashbang-account-not-koyeb)). Proposed for retirement.
 
 ## Style preferences
 

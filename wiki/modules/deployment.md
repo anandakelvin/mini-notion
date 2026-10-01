@@ -30,10 +30,17 @@ The browser only talks to the Pages site; Pages Functions forward `/api/*` and `
 5. `systemctl --user restart mini-notion` on the server.
 6. Poll `GET /api/notes` for up to 30 s until it answers 401 (up, and wants a login).
 
+## Server environment
+
+- Folder: `~/projects/mini-notion` on hashbang. Service: systemd user unit `mini-notion` (`Restart=always`), runs `node dist/backend/src/main.js` from that folder.
+- The unit sets `NODE_ENV`, `PORT`, `FRONTEND_URL`.
+- `~/projects/mini-notion/.env` (mode `600`) holds `DATABASE_URL` and `JWT_SECRET`, plus the same three as the unit. `ConfigModule` loads it because the service runs in that folder. `deploy.sh` does not copy or change it.
+- To change a secret: edit that `.env` on the server, then `systemctl --user restart mini-notion` (with `XDG_RUNTIME_DIR=/run/user/$(id -u)`).
+
 ## `deploy.sh frontend`
 
 `VITE_API_URL="" pnpm build` (same origin), then `npx wrangler pages deploy dist --project-name mini-notion --branch main`.
 
 ## Dockerfile
 
-Added for Koyeb (commit `d34cea3`). Builds from the repo root because the backend imports `../shared`. `deploy.sh` does not use it.
+Added for Koyeb (commit `d34cea3`). **Unused**: Koyeb was dropped for the owner's own hashbang account ([ADR-014](../architecture/decisions.md#adr-014-backend-on-own-hashbang-account-not-koyeb)). Proposed for retirement in [SCHEMA](../SCHEMA.md#redundant-legacy-docs).

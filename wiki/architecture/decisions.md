@@ -144,3 +144,12 @@ ADR-001 to ADR-011 were written on 2026-10-01, after the fact, from the code and
 - **Context**: The JWT signing secret was a fixed string in `backend/src/auth/constants.ts` (NestJS docs placeholder). The repo is going public, so anyone could sign a valid `access_token` cookie for the live app.
 - **Decision**: Read it from `JWT_SECRET`. `jwtConstants.secret` is a getter that throws `JWT_SECRET is not set` if it is missing. `JwtModule` uses `registerAsync`, because `ConfigModule` loads `.env` only after `auth.module.ts` is imported. Rejected: an empty or default fallback value — the app would run with a guessable key.
 - **Consequences**: Every environment (local `backend/.env`, the hashbang server `.env`) must set `JWT_SECRET`, or the backend does not start. Changing it logs everyone out. The old string stays in git history and must never be used again. Covered by `backend/src/auth/constants.spec.ts`.
+
+---
+
+## ADR-014: Backend on own hashbang account, not Koyeb
+
+- **Status**: Accepted
+- **Context**: A Dockerfile for Koyeb was added on 2026-09-27 (commit `d34cea3`). The same day, the deploy moved to hashbang (commits `693f642`, `e967f7f`).
+- **Decision**: The backend runs only on the owner's own hashbang account, as a systemd user service (confirmed by the owner, 2026-10-01). Koyeb is not used. The owner did not give a reason, so none is recorded here.
+- **Consequences**: The `Dockerfile` is unused. Server limits shape the build ([ADR-009](#adr-009-pure-js-dependencies-only)). Server secrets live in `~/projects/mini-notion/.env` ([deployment](../modules/deployment.md#server-environment)).
