@@ -4,6 +4,7 @@ updated: 2026-10-01
 sources:
   - backend/src/auth/auth.controller.ts
   - backend/src/auth/jwt-strategy.ts
+  - backend/src/auth/constants.ts
   - backend/src/note/note.service.ts
   - backend/src/note/note.gateway.ts
   - backend/prisma/schema.prisma
@@ -134,3 +135,12 @@ ADR-001 to ADR-011 were written on 2026-10-01, after the fact, from the code and
   - SC-002: Every wiki page has `sources:` and `source_commit` frontmatter.
 - **Assumptions**: Lint is left out of the gate until the code is formatted once (619 backend errors, no frontend config).
 - **Consequences**: More files to keep current. The wiki can drift; `/wiki-lint` and the confidence field are the check against that.
+
+---
+
+## ADR-013: JWT secret from the environment, required at startup
+
+- **Status**: Accepted
+- **Context**: The JWT signing secret was a fixed string in `backend/src/auth/constants.ts` (NestJS docs placeholder). The repo is going public, so anyone could sign a valid `access_token` cookie for the live app.
+- **Decision**: Read it from `JWT_SECRET`. `jwtConstants.secret` is a getter that throws `JWT_SECRET is not set` if it is missing. `JwtModule` uses `registerAsync`, because `ConfigModule` loads `.env` only after `auth.module.ts` is imported. Rejected: an empty or default fallback value — the app would run with a guessable key.
+- **Consequences**: Every environment (local `backend/.env`, the hashbang server `.env`) must set `JWT_SECRET`, or the backend does not start. Changing it logs everyone out. The old string stays in git history and must never be used again. Covered by `backend/src/auth/constants.spec.ts`.

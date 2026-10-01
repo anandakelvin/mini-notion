@@ -35,7 +35,9 @@ Email and password accounts. The session is a JWT in an HttpOnly cookie ([ADR-00
 - JWT payload: `{ email, sub: userId }`, expires in 1 hour. Cookie `maxAge` is also 1 hour.
 - Cookie: `httpOnly`. In production (`NODE_ENV=production`): `sameSite: 'none'`, `secure: true`. Otherwise `sameSite: 'strict'`.
 - `JwtStrategy.validate` returns `{ email, userId }`. Controllers get it with the `@ReqUser()` decorator (type `IReqUser`).
-- Signing secret: `jwtConstants.secret` in `backend/src/auth/constants.ts`. **It is a fixed string in source code, not read from the environment.** `NoteGateway` uses the same constant.
+- Signing secret: env variable `JWT_SECRET`, read through the `jwtConstants.secret` getter in `backend/src/auth/constants.ts`. The getter throws `JWT_SECRET is not set` if it is missing, so the app does not start without it. `JwtModule` uses `registerAsync` so the secret is read after `ConfigModule` has loaded `.env`. `NoteGateway` uses the same getter.
+
+> **Superseded 2026-10-01**: previously said the secret was a fixed string in source code. That string is still in git history, so it must never be used as a secret again.
 
 ## Frontend
 

@@ -36,6 +36,7 @@ Needs Node 24 and pnpm 10.
 ```bash
 pnpm install
 echo 'DATABASE_URL=postgres://...' > backend/.env    # any Postgres
+echo "JWT_SECRET=$(openssl rand -hex 32)" >> backend/.env
 (cd backend && npx prisma migrate deploy && npx prisma generate)
 pnpm --filter backend start:dev     # http://localhost:3000/api
 pnpm --filter frontend dev          # http://localhost:5173

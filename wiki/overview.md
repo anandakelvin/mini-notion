@@ -63,6 +63,7 @@ In local dev there is no proxy: the frontend calls `VITE_API_URL` or `http://loc
 | Name | Used by | Default |
 |---|---|---|
 | `DATABASE_URL` | Prisma (`prisma.service.ts`, `prisma.config.ts`) | none |
+| `JWT_SECRET` | JWT signing and checking (`auth/constants.ts`) | none — the app will not start without it |
 | `FRONTEND_URL` | CORS for REST (`main.ts`) and Socket.io (`note.gateway.ts`) | `localhost:5173` and `:4173` (REST), `localhost:5173` (socket) |
 | `PORT` | `main.ts` | `3000` |
 | `NODE_ENV` | cookie options (`auth.controller.ts`) | — |
