@@ -50,3 +50,7 @@ Append-only. Newest at the bottom. `grep '^## \[' wiki/log.md | tail -10` shows 
 - Open, save and `join_note` no longer check the owner; list and delete still do. ADR-006 superseded; notes, realtime and data-model pages and the README updated (README now has "Try the live collaboration" steps).
 - Proof: `note.service.spec.ts` 4/4 pass; with an owner filter put back on open and save, exactly those 2 fail. `pnpm review` exit 0.
 - Not yet deployed.
+
+## [2026-10-01] deploy | cross-user editing live
+- Backend deployed (no migrations). Checked on https://mini-notion.pages.dev with two new accounts: B opened (200) and saved (200, `last_edited_by` = B) A's note, joined its socket room, and received A's next save live. B's list did not show it; B's delete got 404; no login got 401. Probe note deleted.
+- Two probe accounts stay in the production `User` table (no delete endpoint): `probe-a-1790825186451@example.com`, `probe-b-1790825186451@example.com`.
