@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "typecheck": "pnpm --filter backend exec tsc --noEmit && pnpm --filter frontend exec tsc -b",
+    "test": "pnpm --filter backend test && pnpm --filter backend test:e2e",
+    "review": "pnpm typecheck && pnpm test"
   },
   "keywords": [],
   "author": "",
