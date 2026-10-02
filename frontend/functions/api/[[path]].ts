@@ -1,5 +1,5 @@
 // Forwards /api/* to the backend, so the browser sees one site and the HttpOnly cookie is first-party.
-const BACKEND = "https://geeky1.de1.hashbang.sh/mini-notion-backend";
+const BACKEND = "https://mini-notion-api.kelvin.us.ci";
 
 export function onRequest({ request }: { request: Request }) {
 	const url = new URL(request.url);

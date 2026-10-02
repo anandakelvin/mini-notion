@@ -1,5 +1,5 @@
 // Forwards Socket.io (polling and WebSocket upgrade) to the backend.
-const BACKEND = "https://geeky1.de1.hashbang.sh/mini-notion-backend";
+const BACKEND = "https://mini-notion-api.kelvin.us.ci";
 
 export function onRequest({ request }: { request: Request }) {
 	const url = new URL(request.url);

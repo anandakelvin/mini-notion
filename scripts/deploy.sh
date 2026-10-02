@@ -1,28 +1,29 @@
 #!/usr/bin/env bash
 # Deploy mini-notion.
-#   scripts/deploy.sh backend   -> hashbang (ssh alias "hb"), served at /mini-notion-backend/
+#   scripts/deploy.sh backend   -> OCI VM kelvin-first-instance, served at mini-notion-api.kelvin.us.ci
 #   scripts/deploy.sh frontend  -> Cloudflare Pages project "mini-notion"
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-BACKEND_URL=https://geeky1.de1.hashbang.sh/mini-notion-backend
+BACKEND_URL=https://mini-notion-api.kelvin.us.ci
+VM=ubuntu@168.110.208.75
+SSH="ssh -i $HOME/.ssh/hashbang_key"
 
 deploy_backend() {
 	pnpm --filter backend build
 
-	# The server's 512 MiB memory limit can't run npm install, so build a flat
-	# production node_modules here (all deps are pure JS) and copy it over.
+	# Build a flat production node_modules here (all deps are pure JS) and copy it over.
 	mkdir -p .deploy/backend
 	cp backend/package.json .deploy/backend/
 	(cd .deploy/backend && npm install --omit=dev --no-audit --no-fund --loglevel=error)
 
-	rsync -az --delete backend/dist/ hb:projects/mini-notion/dist/
-	rsync -az --delete .deploy/backend/node_modules/ hb:projects/mini-notion/node_modules/
-	rsync -az backend/package.json hb:projects/mini-notion/
+	rsync -az --delete -e "$SSH" backend/dist/ $VM:mini-notion/dist/
+	rsync -az --delete -e "$SSH" .deploy/backend/node_modules/ $VM:mini-notion/node_modules/
+	rsync -az -e "$SSH" backend/package.json $VM:mini-notion/
 
 	(cd backend && npx prisma migrate deploy)
 
-	ssh hb 'export XDG_RUNTIME_DIR=/run/user/$(id -u); systemctl --user restart mini-notion'
+	$SSH $VM 'sudo systemctl restart mini-notion'
 	# Expect 401: the API is up and wants a login. Startup takes a few seconds.
 	for _ in $(seq 30); do
 		code=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/api/notes")
