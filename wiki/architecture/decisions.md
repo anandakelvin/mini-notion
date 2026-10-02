@@ -1,6 +1,6 @@
 ---
 title: Architecture decisions
-updated: 2026-10-01
+updated: 2026-10-03
 sources:
   - backend/src/auth/auth.controller.ts
   - backend/src/auth/jwt-strategy.ts
@@ -12,7 +12,7 @@ sources:
   - frontend/functions/api/[[path]].ts
   - shared/dto/note/body/update-note-body.schema.ts
   - scripts/deploy.sh
-source_commit: e967f7f
+source_commit: 9e42de7
 confidence: medium
 ---
 
@@ -97,7 +97,7 @@ ADR-001 to ADR-011 were written on 2026-10-01, after the fact, from the code and
 ## ADR-009: Pure-JS dependencies only
 
 - **Status**: Accepted
-- **Context**: The backend host (hashbang) has a 512 MiB memory limit and cannot run `npm install` (commit `693f642`).
+- **Context**: The backend host (hashbang) has a 512 MiB memory limit and cannot run `npm install` (commit `693f642`). Since 2026-10-03 the backend runs on an OCI VM ([ADR-016](#adr-016-backend-on-the-owners-oci-vm-not-hashbang)), which could run `npm install`. The local build was kept: it already works, and the VM is Linux arm64 while the build machine is macOS, so a native module would still break.
 - **Decision**: `deploy.sh` builds production `node_modules` locally and copies it over. All dependencies must be pure JS: `bcrypt` was swapped for `bcryptjs`, SQLite packages were removed.
 - **Consequences**: A native module (anything with a build step) breaks the deploy. Check before adding a dependency.
 
@@ -107,7 +107,7 @@ ADR-001 to ADR-011 were written on 2026-10-01, after the fact, from the code and
 
 - **Status**: Accepted
 - **Context**: Frontend (Cloudflare Pages) and backend (hashbang) are on different sites. The auth cookie must be first-party (commit `9722f9b`).
-- **Decision**: All backend routes live under `/api`. Pages Functions in `frontend/functions/api/[[path]].ts` and `frontend/functions/socket.io/[[path]].ts` forward to `https://geeky1.de1.hashbang.sh/mini-notion-backend`. The production frontend is built with `VITE_API_URL=""` (same origin).
+- **Decision**: All backend routes live under `/api`. Pages Functions in `frontend/functions/api/[[path]].ts` and `frontend/functions/socket.io/[[path]].ts` forward to `https://mini-notion-api.kelvin.us.ci` (was `https://geeky1.de1.hashbang.sh/mini-notion-backend` until 2026-10-03, [ADR-016](#adr-016-backend-on-the-owners-oci-vm-not-hashbang)). The production frontend is built with `VITE_API_URL=""` (same origin).
 - **Consequences**: The browser only talks to the Pages site. The backend URL is written in two Function files.
 
 ---
@@ -149,7 +149,7 @@ ADR-001 to ADR-011 were written on 2026-10-01, after the fact, from the code and
 
 ## ADR-014: Backend on own hashbang account, not Koyeb
 
-- **Status**: Accepted
+- **Status**: Superseded by [ADR-016](#adr-016-backend-on-the-owners-oci-vm-not-hashbang) (2026-10-03). Koyeb is still not used.
 - **Context**: A Dockerfile for Koyeb was added on 2026-09-27 (commit `d34cea3`). The same day, the deploy moved to hashbang (commits `693f642`, `e967f7f`).
 - **Decision**: The backend runs only on the owner's own hashbang account, as a systemd user service (confirmed by the owner, 2026-10-01). Koyeb is not used. The owner did not give a reason, so none is recorded here.
 - **Consequences**: The `Dockerfile` is unused. Server limits shape the build ([ADR-009](#adr-009-pure-js-dependencies-only)). Server secrets live in `~/projects/mini-notion/.env` ([deployment](../modules/deployment.md#server-environment)).
@@ -173,3 +173,12 @@ ADR-001 to ADR-011 were written on 2026-10-01, after the fact, from the code and
   - SC-002: `pnpm review` exits 0.
 - **Assumptions**: The conflict check (ADR-004) is enough protection against two users overwriting each other. Note ids stay sequential, so a logged-in user can open any note by guessing a number; the owner accepts this (2026-10-01).
 - **Consequences**: Real multi-user collaboration with different emails and cursor colors. No privacy between accounts for a note whose id is known.
+
+---
+
+## ADR-016: Backend on the owner's OCI VM, not hashbang
+
+- **Status**: Accepted
+- **Context**: The owner got an Oracle Cloud Always Free VM (`kelvin-first-instance`, 2 OCPU / 12 GB, Ubuntu 24.04 arm64) and asked to move the backend there from hashbang (512 MiB limit), on 2026-10-03.
+- **Decision**: The backend runs on the VM as the systemd **system** unit `mini-notion` (`User=ubuntu`, folder `/home/ubuntu/mini-notion`, Node 24 in `/usr/local`). It is reached at `https://mini-notion-api.kelvin.us.ci` through a Cloudflare Tunnel (`cloudflared` on the VM, tunnel `kelvin-vm`), not through the VM's public IP: no open ports, no TLS setup on the VM. Rejected: a Docker image (the existing `Dockerfile`); the rsync deploy already works and needs less change.
+- **Consequences**: `deploy.sh backend` copies to `ubuntu@168.110.208.75` with `~/.ssh/hashbang_key` and restarts with `sudo systemctl`. The backend URL lives in the two Pages Function files and in `deploy.sh`. The hashbang service is stopped and disabled; its files stay there as a backup. If the VM is recreated, its public IP changes and `deploy.sh` must change; the site URL does not.

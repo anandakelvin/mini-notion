@@ -54,3 +54,9 @@ Append-only. Newest at the bottom. `grep '^## \[' wiki/log.md | tail -10` shows 
 ## [2026-10-01] deploy | cross-user editing live
 - Backend deployed (no migrations). Checked on https://mini-notion.pages.dev with two new accounts: B opened (200) and saved (200, `last_edited_by` = B) A's note, joined its socket room, and received A's next save live. B's list did not show it; B's delete got 404; no login got 401. Probe note deleted.
 - Two probe accounts stay in the production `User` table (no delete endpoint): `probe-a-1790825186451@example.com`, `probe-b-1790825186451@example.com`.
+
+## [2026-10-03] deploy | backend moved from hashbang to the OCI VM (ADR-016)
+- Why: owner asked; the VM (2 OCPU / 12 GB) replaces the 512 MiB hashbang account. New backend URL `https://mini-notion-api.kelvin.us.ci` (Cloudflare Tunnel `kelvin-vm` on the VM).
+- Changed `deploy.sh` (target VM, `sudo systemctl`) and the two Pages Function files (backend URL). Server `.env` copied from hashbang. Node 24.15 and `rsync` installed on the VM.
+- Verified live: `deploy.sh backend` → no pending migrations, check 401; frontend deployed; with the hashbang service stopped, through https://mini-notion.pages.dev: `/api/notes` 401, socket.io polling handshake 200, wrong login 401. `pnpm review` exit 0. A real login was not tested (needs the owner's account).
+

@@ -1,9 +1,9 @@
 ---
 title: Wiki index
-updated: 2026-10-01
+updated: 2026-10-03
 sources:
   - wiki/
-source_commit: e967f7f
+source_commit: 9e42de7
 confidence: high
 ---
 
@@ -16,7 +16,7 @@ Start here. Pick the pages for your task. Read source code only when the wiki is
 - [glossary](glossary.md) — terms used in code and in this wiki
 
 ## Architecture
-- [decisions](architecture/decisions.md) — ADR-001 to ADR-015: why things are the way they are
+- [decisions](architecture/decisions.md) — ADR-001 to ADR-016: why things are the way they are
 - [data model](architecture/data-model.md) — tables, and how the editor's block tree is stored
 - [pitfalls](architecture/pitfalls.md) — library and server gotchas that already cost time
 
@@ -25,7 +25,7 @@ Start here. Pick the pages for your task. Read source code only when the wiki is
 - [notes](modules/notes.md) — note REST endpoints, save flow, conflict check
 - [realtime](modules/realtime.md) — Socket.io events, rooms, remote cursors, action labels
 - [frontend](modules/frontend.md) — routes, data hooks, editor and auto-save
-- [deployment](modules/deployment.md) — Cloudflare Pages, hashbang, Neon, deploy script
+- [deployment](modules/deployment.md) — Cloudflare Pages, OCI VM, Neon, deploy script
 
 ## Meta
 - [SCHEMA](SCHEMA.md) — rules for this wiki: page format, ADR format, decay

@@ -1,6 +1,6 @@
 ---
 title: Overview
-updated: 2026-10-01
+updated: 2026-10-03
 sources:
   - package.json
   - pnpm-workspace.yaml
@@ -8,7 +8,7 @@ sources:
   - backend/src/app/app.module.ts
   - frontend/src/lib/utils.ts
   - frontend/vite.config.ts
-source_commit: e967f7f
+source_commit: 9e42de7
 confidence: high
 ---
 
@@ -24,8 +24,8 @@ mini-notion is a small Notion-style note app with live sync between open windows
 | `frontend/` | React 19, Vite, TanStack Router, BlockNote editor, shadcn/ui, zustand. |
 | `frontend/functions/` | Cloudflare Pages Functions that proxy `/api` and `/socket.io` to the backend. |
 | `shared/` | zod schemas (`*.schema.ts`) and Nest DTO classes (`*.dto.ts`) for request bodies. |
-| `scripts/deploy.sh` | Deploys the backend to hashbang or the frontend to Cloudflare Pages. |
-| `Dockerfile` | Backend image, added for Koyeb (commit `d34cea3`). Unused: the backend runs on hashbang ([ADR-014](architecture/decisions.md#adr-014-backend-on-own-hashbang-account-not-koyeb)). |
+| `scripts/deploy.sh` | Deploys the backend to the OCI VM or the frontend to Cloudflare Pages. |
+| `Dockerfile` | Backend image, added for Koyeb (commit `d34cea3`). Unused: the backend runs on the OCI VM without Docker ([ADR-016](architecture/decisions.md#adr-016-backend-on-the-owners-oci-vm-not-hashbang), [ADR-014](architecture/decisions.md#adr-014-backend-on-own-hashbang-account-not-koyeb)). |
 
 Path aliases: `backend/*`, `frontend/*` and `shared/*` resolve from the repo root (`tsconfig.base.json`, Vite `resolve.alias`, Jest `moduleNameMapper`).
 
